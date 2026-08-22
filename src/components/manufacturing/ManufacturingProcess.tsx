@@ -20,7 +20,7 @@ export function ManufacturingProcess({ className }: ManufacturingProcessProps) {
       id="manufacturing-process"
       aria-label="SLOTS SPORTSWEAR Manufacturing Process"
       className={cn(
-        "relative w-full bg-slots-black text-slots-white py-16 sm:py-20 lg:py-28 border-b border-carbon-grey/40 overflow-hidden",
+        "relative w-full bg-slots-black text-slots-white py-14 sm:py-16 lg:py-16 border-b border-carbon-grey/40 overflow-hidden",
         className
       )}
     >
@@ -35,7 +35,7 @@ export function ManufacturingProcess({ className }: ManufacturingProcessProps) {
         />
 
         {/* 4 Core Process Stage Photography Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 mt-12 sm:mt-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 mt-10 sm:mt-12">
           {PROCESS_PHASE_CARDS.map((phase) => (
             <div
               key={phase.id}

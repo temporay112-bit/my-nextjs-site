@@ -22,28 +22,27 @@ export function TrustBadgeCard({ badge, showDivider = false }: TrustBadgeCardPro
   return (
     <div
       className={cn(
-        "group relative flex flex-col gap-3 px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7 transition-colors duration-200",
-        showDivider && "lg:border-l lg:border-carbon-grey/40"
+        "group relative flex flex-col gap-2 px-4 py-3 sm:px-5 sm:py-4 lg:px-6 lg:py-3 transition-colors duration-200",
+        showDivider && "lg:border-l lg:border-[#E5E7EB]"
       )}
     >
       {/* Number + Icon Row */}
-      <div className="flex items-center gap-3">
-        <span className="font-sora text-xs font-bold text-electric-lime tracking-widest-brand">
+      <div className="flex items-center gap-2.5">
+        <span className="font-sora text-xs font-bold text-[#171717] tracking-widest-brand">
           {badge.number}
         </span>
-        <Icon
-          className="w-5 h-5 text-electric-lime/80 group-hover:text-electric-lime transition-colors duration-200 stroke-[1.75]"
-          aria-hidden="true"
-        />
+        <div className="w-6 h-6 rounded-md bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center group-hover:bg-electric-lime group-hover:text-[#050505] transition-colors duration-200">
+          <Icon className="w-3.5 h-3.5 stroke-[2]" aria-hidden="true" />
+        </div>
       </div>
 
       {/* Title */}
-      <h3 className="font-sora text-sm sm:text-[15px] font-bold uppercase tracking-technical text-slots-white leading-tight">
+      <h3 className="font-sora text-xs sm:text-sm font-bold uppercase tracking-technical text-[#171717] leading-tight">
         {badge.title}
       </h3>
 
       {/* Description */}
-      <p className="font-inter text-xs sm:text-[13px] text-technical-grey leading-relaxed">
+      <p className="font-inter text-xs text-[#4B5563] leading-relaxed">
         {badge.description}
       </p>
     </div>

@@ -91,3 +91,99 @@ export const PRODUCTS_SHOWCASE_CONTENT = {
     href: "/products",
   },
 };
+
+export interface NewArrivalProduct {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  alt: string;
+  href: string;
+  published: boolean;
+}
+
+export const NEW_ARRIVALS_PRODUCTS: NewArrivalProduct[] = [
+  {
+    id: "glove-01",
+    title: "Performance Golf Gloves",
+    category: "Gloves",
+    image: "/images/products/Gloves/1.png",
+    alt: "SLOTS SPORTSWEAR Performance Golf Gloves",
+    href: "/products#golfwear",
+    published: true,
+  },
+  {
+    id: "golf-polo-01",
+    title: "Performance Golf Polo",
+    category: "Golf Polo",
+    image: "/images/products/Polo/2.png",
+    alt: "SLOTS SPORTSWEAR Performance Golf Polo",
+    href: "/products#golfwear",
+    published: true,
+  },
+  {
+    id: "polo-01",
+    title: "Classic Athletic Polo",
+    category: "Polo",
+    image: "/images/products/Polo/1.png",
+    alt: "SLOTS SPORTSWEAR Classic Athletic Polo",
+    href: "/products#golfwear",
+    published: true,
+  },
+  {
+    id: "shirt-01",
+    title: "Training Activewear Shirt",
+    category: "Shirts",
+    image: "/images/products/Shirts/1.png",
+    alt: "SLOTS SPORTSWEAR Training Activewear Shirt",
+    href: "/products#activewear",
+    published: true,
+  },
+  {
+    id: "short-01",
+    title: "Performance Training Shorts",
+    category: "Short",
+    image: "/images/products/Short/1.png",
+    alt: "SLOTS SPORTSWEAR Performance Training Shorts",
+    href: "/products#activewear",
+    published: true,
+  },
+  {
+    id: "sleeves-01",
+    title: "Compression Arm Sleeves",
+    category: "Sleeves",
+    image: "/images/products/Sleeves/1.png",
+    alt: "SLOTS SPORTSWEAR Compression Arm Sleeves",
+    href: "/products#activewear",
+    published: true,
+  },
+  {
+    id: "tank-01",
+    title: "Athletic Performance Tank Top",
+    category: "Tank Top",
+    image: "/images/products/Tank Top/1.png",
+    alt: "SLOTS SPORTSWEAR Athletic Performance Tank Top",
+    href: "/products#activewear",
+    published: true,
+  },
+  {
+    id: "women-shirt-01",
+    title: "Women's Athletic Training Shirt",
+    category: "Women Shirt",
+    image: "/images/products/Women Shirt/1.png",
+    alt: "SLOTS SPORTSWEAR Women's Athletic Training Shirt",
+    href: "/products#activewear",
+    published: true,
+  },
+];
+
+export const NEW_ARRIVALS_CONTENT = {
+  eyebrow: "LATEST PRODUCTS",
+  headline: "NEW ARRIVALS",
+  supportingText:
+    "Explore our newest custom sportswear developments engineered for international B2B brands and teams.",
+  cta: {
+    label: "VIEW ALL PRODUCTS",
+    href: "/products",
+  },
+};

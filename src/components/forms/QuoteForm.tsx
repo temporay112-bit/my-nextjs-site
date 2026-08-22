@@ -16,6 +16,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
   const [formData, setFormData] = useState<InquiryInput>({
     name: "",
     email: "",
+    phone: "",
     company: "",
     productCategory: "golfwear",
     message: "",
@@ -42,11 +43,12 @@ export function QuoteForm({ className }: QuoteFormProps) {
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear field error on change
-    if (fieldErrors[name]) {
+    // Clear field errors on change
+    if (fieldErrors[name] || (name === "email" && fieldErrors.contact) || (name === "phone" && fieldErrors.contact)) {
       setFieldErrors((prev) => {
         const next = { ...prev };
         delete next[name];
+        delete next.contact;
         return next;
       });
     }
@@ -65,7 +67,8 @@ export function QuoteForm({ className }: QuoteFormProps) {
     if (!validation.isValid) {
       setFieldErrors(validation.errors);
       const firstErrorKey = Object.keys(validation.errors)[0];
-      const el = document.getElementById(`field-${firstErrorKey}`);
+      const targetId = firstErrorKey === "contact" ? "field-email" : `field-${firstErrorKey}`;
+      const el = document.getElementById(targetId);
       el?.focus();
       return;
     }
@@ -101,9 +104,8 @@ export function QuoteForm({ className }: QuoteFormProps) {
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Submission failed. Please try again.";
-      setSubmitStatus("error");
       setServerErrorMessage(msg);
-
+      setSubmitStatus("error");
       trackEvent("inquiry_submit", {
         category: formData.productCategory,
         has_techpack: !!formData.fileReference,
@@ -118,6 +120,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
     setFormData({
       name: "",
       email: "",
+      phone: "",
       company: "",
       productCategory: "golfwear",
       message: "",
@@ -131,22 +134,18 @@ export function QuoteForm({ className }: QuoteFormProps) {
     setHasStartedTyping(false);
   };
 
-  // Success Confirmation View
+  // Success State View
   if (submitStatus === "success") {
     return (
       <div
         className={cn(
-          "rounded-2xl bg-graphite border border-electric-lime/40 p-8 sm:p-10 lg:p-12 shadow-2xl flex flex-col items-center text-center",
+          "rounded-2xl bg-graphite border border-carbon-grey/60 p-8 sm:p-12 text-center shadow-2xl flex flex-col items-center",
           className
         )}
       >
-        <div className="w-16 h-16 rounded-full bg-electric-lime/10 border-2 border-electric-lime text-electric-lime flex items-center justify-center mb-6 shadow-cta-glow">
-          <CheckCircle2 className="w-8 h-8 stroke-[2]" />
+        <div className="w-16 h-16 rounded-2xl bg-electric-lime/10 border border-electric-lime/30 text-electric-lime flex items-center justify-center mb-6">
+          <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
         </div>
-
-        <span className="font-sora text-xs font-bold text-electric-lime uppercase tracking-widest-brand px-3 py-1 rounded-full bg-slots-black border border-light-grey/10 mb-3">
-          INQUIRY RECEIVED
-        </span>
 
         <h3 className="font-sora text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-slots-white">
           Thank You, {formData.name.split(" ")[0]}!
@@ -215,7 +214,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
       )}
 
-      {/* Row 1: Name & Email */}
+      {/* Row 1: Name & Company */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         <div>
           <label htmlFor="field-name" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
@@ -247,38 +246,6 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
 
         <div>
-          <label htmlFor="field-email" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
-            Business Email <span className="text-electric-lime">*</span>
-          </label>
-          <input
-            id="field-email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            placeholder="john@brand.com"
-            disabled={isSubmitting}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
-              fieldErrors.email
-                ? "border-red-500 focus-visible:ring-red-400"
-                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
-            )}
-          />
-          {fieldErrors.email && (
-            <p className="font-inter text-xs text-red-400 mt-1.5 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{fieldErrors.email}</span>
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Row 2: Company & Product Category */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-        <div>
           <label htmlFor="field-company" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
             Company / Brand <span className="text-electric-lime">*</span>
           </label>
@@ -306,51 +273,106 @@ export function QuoteForm({ className }: QuoteFormProps) {
             </p>
           )}
         </div>
+      </div>
 
+      {/* Row 2: Business Email & Phone / WhatsApp (Email OR Phone/WhatsApp Required) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         <div>
-          <label htmlFor="field-productCategory" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
-            Product Category <span className="text-electric-lime">*</span>
+          <label htmlFor="field-email" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+            Business Email <span className="text-technical-grey font-normal normal-case">(or Phone)</span>
           </label>
-          <div className="relative">
-            <select
-              id="field-productCategory"
-              name="productCategory"
-              required
-              value={formData.productCategory}
-              onChange={handleInputChange}
-              disabled={isSubmitting}
-              className={cn(
-                "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white font-inter text-sm transition-colors appearance-none cursor-pointer focus-visible:outline-none focus-visible:ring-2",
-                fieldErrors.productCategory
-                  ? "border-red-500 focus-visible:ring-red-400"
-                  : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
-              )}
-            >
-              {ALLOWED_PRODUCT_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value} className="bg-slots-black text-slots-white py-2">
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-technical-grey">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-              </svg>
-            </div>
-          </div>
-          {fieldErrors.productCategory && (
+          <input
+            id="field-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="name@company.com"
+            disabled={isSubmitting}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              fieldErrors.email || fieldErrors.contact
+                ? "border-red-500 focus-visible:ring-red-400"
+                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+            )}
+          />
+          {fieldErrors.email && (
             <p className="font-inter text-xs text-red-400 mt-1.5 flex items-center gap-1">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>{fieldErrors.productCategory}</span>
+              <span>{fieldErrors.email}</span>
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="field-phone" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+            Phone / WhatsApp <span className="text-technical-grey font-normal normal-case">(or Email)</span>
+          </label>
+          <input
+            id="field-phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            value={formData.phone}
+            onChange={handleInputChange}
+            placeholder="+1 555 123 4567"
+            disabled={isSubmitting}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              fieldErrors.phone
+                ? "border-red-500 focus-visible:ring-red-400"
+                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+            )}
+          />
+          {fieldErrors.phone && (
+            <p className="font-inter text-xs text-red-400 mt-1.5 flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>{fieldErrors.phone}</span>
             </p>
           )}
         </div>
       </div>
 
-      {/* Row 3: Message / Project Details */}
+      {/* Row 3: Product Category */}
+      <div>
+        <label htmlFor="field-productCategory" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+          Product Category <span className="text-electric-lime">*</span>
+        </label>
+        <div className="relative">
+          <select
+            id="field-productCategory"
+            name="productCategory"
+            required
+            value={formData.productCategory}
+            onChange={handleInputChange}
+            disabled={isSubmitting}
+            className="w-full px-4 py-3 rounded-xl bg-slots-black border border-carbon-grey/70 text-slots-white font-inter text-sm transition-colors focus-visible:outline-none focus-visible:border-electric-lime focus-visible:ring-2 focus-visible:ring-electric-lime appearance-none cursor-pointer"
+          >
+            {ALLOWED_PRODUCT_CATEGORIES.map((cat) => (
+              <option key={cat.value} value={cat.value} className="bg-slots-black text-slots-white">
+                {cat.label}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-technical-grey">
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
+        </div>
+        {fieldErrors.productCategory && (
+          <p className="font-inter text-xs text-red-400 mt-1.5 flex items-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span>{fieldErrors.productCategory}</span>
+          </p>
+        )}
+      </div>
+
+      {/* Row 4: Project Requirements / Message */}
       <div>
         <label htmlFor="field-message" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
-          Project Details / Requirements <span className="text-electric-lime">*</span>
+          Project Requirements & Specifications <span className="text-electric-lime">*</span>
         </label>
         <textarea
           id="field-message"
@@ -359,10 +381,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
           rows={4}
           value={formData.message}
           onChange={handleInputChange}
-          placeholder="Tell us briefly about your project (target quantities, fabric preferences, custom branding, or timeline)."
+          placeholder="Please describe your project (quantities, fabrics, target delivery timeline, customization requirements)..."
           disabled={isSubmitting}
           className={cn(
-            "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors resize-y min-h-[100px] focus-visible:outline-none focus-visible:ring-2",
+            "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 resize-y",
             fieldErrors.message
               ? "border-red-500 focus-visible:ring-red-400"
               : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
@@ -376,7 +398,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
         )}
       </div>
 
-      {/* Row 4: File Upload */}
+      {/* Row 5: Vercel Blob File Upload */}
       <FileUpload onFileUploaded={handleFileUploaded} disabled={isSubmitting} />
 
       {/* Submit Button */}
@@ -387,25 +409,24 @@ export function QuoteForm({ className }: QuoteFormProps) {
           size="lg"
           fullWidth
           disabled={isSubmitting}
-          className="shadow-lg hover:shadow-cta-glow font-extrabold flex items-center justify-center gap-2 py-4"
+          className="group relative overflow-hidden flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
-            <>
-              <span className="w-5 h-5 rounded-full border-2 border-slots-black border-t-transparent animate-spin" />
-              <span>Processing Inquiry...</span>
-            </>
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full border-2 border-slots-black border-t-transparent animate-spin" />
+              <span>SUBMITTING INQUIRY...</span>
+            </span>
           ) : (
             <>
               <span>SUBMIT INQUIRY</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
             </>
           )}
         </Button>
+        <p className="font-inter text-[11px] text-center text-technical-grey/80 mt-2.5">
+          By submitting, you agree to our standard manufacturing confidentiality terms. We reply within 24 hours.
+        </p>
       </div>
-
-      <p className="text-center font-inter text-[11px] text-technical-grey mt-1">
-        We respect your privacy. No spam. Direct manufacturing review by our Sialkot team.
-      </p>
     </form>
   );
 }

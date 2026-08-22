@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { UploadCloud, FileCheck, AlertCircle, X, RefreshCw } from "lucide-react";
 import { MAX_FILE_SIZE_BYTES, ALLOWED_FILE_EXTENSIONS, validateFileMetadata } from "@/lib/validations";
 import { trackEvent } from "@/lib/analytics";
+import { upload } from "@vercel/blob/client";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
@@ -17,6 +18,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
   const [fileReference, setFileReference] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,12 +35,13 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
       const validation = validateFileMetadata(file.name, file.size, file.type);
       if (!validation.isValid) {
         setUploadStatus("error");
-        setErrorMessage(validation.error || "Invalid file.");
+        setErrorMessage(validation.error || "This file type is not supported.");
         trackEvent("upload_error", { status: "error", error_type: "client_validation" });
         return;
       }
 
       setUploadStatus("uploading");
+      setUploadProgress(10);
       setErrorMessage(null);
 
       const ext = "." + file.name.split(".").pop()?.toLowerCase();
@@ -46,30 +49,37 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
       trackEvent("upload_start", { file_type: ext, file_size_category: sizeCat });
 
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+        // Direct Client Upload to Vercel Blob via @vercel/blob/client (Private for Tech Pack protection)
+        const newBlob = await upload(`techpacks/${file.name}`, file, {
+          access: "private",
+          handleUploadUrl: "/api/upload",
+          onUploadProgress: (progressEvent) => {
+            setUploadProgress(Math.round(progressEvent.percentage));
+          },
         });
 
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          throw new Error(data.error || "Failed to upload file.");
-        }
-
-        setFileReference(data.fileReference);
+        // Store secure pathname or private reference
+        const fileRef = newBlob.pathname || newBlob.url;
+        setFileReference(fileRef);
+        setUploadProgress(100);
         setUploadStatus("success");
-        onFileUploaded(data.fileReference, file.name);
+        onFileUploaded(fileRef, file.name);
         trackEvent("upload_success", { status: "success", file_type: ext });
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "We couldn't upload this file. Please try again.";
+        console.error("[Vercel Blob Client Upload Error]:", err);
+        const msg =
+          err instanceof Error
+            ? err.message.includes("larger")
+              ? "This file is larger than the allowed limit."
+              : err.message.includes("type")
+              ? "This file type is not supported."
+              : "File upload failed. Please try again."
+            : "File upload failed. Please try again.";
+
         setUploadStatus("error");
         setErrorMessage(msg);
         onFileUploaded(null, null);
-        trackEvent("upload_error", { status: "error", error_type: "network_or_server" });
+        trackEvent("upload_error", { status: "error", error_type: "network_or_blob" });
       }
     },
     [onFileUploaded]
@@ -112,6 +122,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
     e.stopPropagation();
     setSelectedFile(null);
     setFileReference(null);
+    setUploadProgress(0);
     setUploadStatus("idle");
     setErrorMessage(null);
     if (fileInputRef.current) {
@@ -130,7 +141,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
   return (
     <div className={cn("w-full", className)}>
       <label className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
-        Upload Tech Pack / Design File <span className="text-technical-grey font-normal normal-case">(Optional)</span>
+        UPLOAD TECH PACK / DESIGN FILE <span className="text-technical-grey font-normal normal-case">(Optional)</span>
       </label>
 
       {/* Hidden File Input */}
@@ -189,7 +200,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
                   {selectedFile.name}
                 </p>
                 <p className="font-inter text-[11px] text-electric-lime flex items-center gap-1.5 mt-0.5">
-                  <span>Uploaded ({formatFileSize(selectedFile.size)})</span>
+                  <span>File uploaded successfully. ({formatFileSize(selectedFile.size)})</span>
                   <span className="w-1 h-1 rounded-full bg-electric-lime" />
                   <span className="text-technical-grey">Ready</span>
                 </p>
@@ -213,10 +224,16 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
           <div className="flex flex-col items-center justify-center w-full py-2">
             <div className="w-8 h-8 rounded-full border-2 border-electric-lime border-t-transparent animate-spin mb-3" />
             <p className="font-sora text-xs font-bold text-slots-white">
-              Uploading {selectedFile.name}...
+              Uploading your file... ({uploadProgress}%)
             </p>
+            <div className="w-48 bg-carbon-grey rounded-full h-1.5 mt-2 overflow-hidden">
+              <div
+                className="bg-electric-lime h-1.5 rounded-full transition-all duration-200"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
             <p className="font-inter text-[11px] text-technical-grey mt-1">
-              Securing file outside web root
+              Direct secure upload to Vercel Blob storage
             </p>
           </div>
         )}
@@ -228,7 +245,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
               <AlertCircle className="w-5 h-5 stroke-[2]" />
             </div>
             <p className="font-sora text-xs font-bold text-red-400">
-              {errorMessage || "Upload failed."}
+              {errorMessage || "File upload failed. Please try again."}
             </p>
             <div className="flex items-center gap-3 mt-3">
               <button
@@ -260,7 +277,7 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
               <span className="text-electric-lime underline underline-offset-2">Click to upload</span> or drag and drop
             </p>
             <p className="font-inter text-[11px] text-technical-grey mt-1">
-              PDF, AI, PSD, PNG, JPG, or ZIP (Max 25MB)
+              PDF, JPG, PNG, WEBP or ZIP (Max 25MB)
             </p>
           </div>
         )}

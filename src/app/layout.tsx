@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Sora, Inter, Barlow_Condensed } from "next/font/google";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import "@/styles/globals.css";
 
 const sora = Sora({
@@ -25,7 +26,11 @@ const barlow = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+  metadataBase: new URL("https://slotssportswear.com"),
+  title: {
+    default: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    template: "%s | SLOTS SPORTSWEAR",
+  },
   description:
     "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, teamwear, private label, and bulk apparel production exported from Sialkot worldwide.",
   keywords: [
@@ -36,8 +41,56 @@ export const metadata: Metadata = {
     "ODM sportswear supplier",
     "bulk sportswear manufacturing",
     "Sialkot sportswear exporter",
+    "sportswear supplier Pakistan",
+    "custom athletic wear factory",
+    "sublimation sportswear manufacturer",
   ],
   authors: [{ name: "SLOTS SPORTSWEAR" }],
+  creator: "SLOTS SPORTSWEAR",
+  publisher: "SLOTS SPORTSWEAR",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    description:
+      "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, teamwear, private label, and bulk apparel production.",
+    url: "https://slotssportswear.com",
+    siteName: "SLOTS SPORTSWEAR",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/images/hero/hero-01.jpg",
+        width: 1200,
+        height: 630,
+        alt: "SLOTS SPORTSWEAR High Performance Custom Manufacturing",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    description:
+      "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, and private label sportswear.",
+    images: ["/images/hero/hero-01.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/images/logo.png",
     apple: "/images/logo.png",
@@ -55,11 +108,52 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Schema.org Structured Data
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "SLOTS SPORTSWEAR",
+    url: "https://slotssportswear.com",
+    logo: "https://slotssportswear.com/images/logo.png",
+    description:
+      "B2B custom sportswear manufacturer and exporter based in Sialkot, Pakistan, offering OEM, ODM, and Private Label apparel solutions.",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Sialkot",
+      postalCode: "51310",
+      addressRegion: "Punjab",
+      addressCountry: "PK",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "shahrangujjar00@gmail.com",
+      contactType: "customer support / sales",
+    },
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "SLOTS SPORTSWEAR",
+    url: "https://slotssportswear.com",
+  };
+
   return (
     <html lang="en" className={`${sora.variable} ${inter.variable} ${barlow.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className="bg-slots-white text-slots-black antialiased flex flex-col min-h-screen">
         <Header />
         <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );

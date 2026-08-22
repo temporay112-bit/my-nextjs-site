@@ -14,7 +14,7 @@ export function ManufacturingSolutions({ className }: ManufacturingSolutionsProp
       id="manufacturing-solutions"
       aria-label="Manufacturing Engagement Models"
       className={cn(
-        "relative w-full bg-graphite text-slots-white py-16 sm:py-20 lg:py-28 border-b border-carbon-grey/40 overflow-hidden",
+        "relative w-full bg-graphite text-slots-white py-14 sm:py-16 lg:py-16 border-b border-carbon-grey/40 overflow-hidden",
         className
       )}
     >
@@ -29,7 +29,7 @@ export function ManufacturingSolutions({ className }: ManufacturingSolutionsProp
         />
 
         {/* 3-Column Capability Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-12 sm:mt-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-10 sm:mt-12">
           {CAPABILITY_MODELS.map((capability) => (
             <CapabilityCard key={capability.id} capability={capability} />
           ))}

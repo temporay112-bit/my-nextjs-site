@@ -19,7 +19,7 @@ export function FactoryProofSection({ className }: FactoryProofSectionProps) {
       id="factory-proof"
       aria-label="SLOTS SPORTSWEAR Factory Trust and Manufacturing Proof"
       className={cn(
-        "relative w-full bg-graphite text-slots-white py-16 sm:py-20 lg:py-28 border-b border-carbon-grey/40 overflow-hidden",
+        "relative w-full bg-graphite text-slots-white py-14 sm:py-16 lg:py-16 border-b border-carbon-grey/40 overflow-hidden",
         className
       )}
     >
@@ -34,7 +34,7 @@ export function FactoryProofSection({ className }: FactoryProofSectionProps) {
         />
 
         {/* Featured Facility Banner Card */}
-        <div className="mt-12 sm:mt-16 relative overflow-hidden rounded-3xl bg-slots-black border border-carbon-grey/60 hover:border-light-grey/30 transition-all duration-300 shadow-xl min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] flex flex-col justify-end p-6 sm:p-10 lg:p-12 group">
+        <div className="mt-10 sm:mt-12 relative overflow-hidden rounded-3xl bg-slots-black border border-carbon-grey/60 hover:border-light-grey/30 transition-all duration-300 shadow-xl min-h-[360px] sm:min-h-[400px] lg:min-h-[440px] flex flex-col justify-end p-6 sm:p-8 lg:p-10 group">
           {/* Background Image */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             <Image

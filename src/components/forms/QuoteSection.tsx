@@ -13,7 +13,7 @@ export function QuoteSection({ className }: QuoteSectionProps) {
       id="quote"
       aria-label="Request a Manufacturing Quote"
       className={cn(
-        "relative w-full bg-slots-black text-slots-white py-16 sm:py-20 lg:py-28 border-b border-carbon-grey/40 overflow-hidden",
+        "relative w-full bg-slots-black text-slots-white py-14 sm:py-16 lg:py-16 border-b border-carbon-grey/40 overflow-hidden",
         className
       )}
     >

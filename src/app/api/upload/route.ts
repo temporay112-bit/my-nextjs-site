@@ -1,45 +1,47 @@
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextRequest, NextResponse } from "next/server";
-import { validateFileMetadata } from "@/lib/validations";
-import { saveUploadedFile } from "@/lib/storage";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "@/lib/validations";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const body = (await request.json()) as HandleUploadBody;
+
   try {
-    const formData = await req.formData();
-    const file = formData.get("file");
-
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json(
-        { success: false, error: "No file was provided in the upload request." },
-        { status: 400 }
-      );
-    }
-
-    const validation = validateFileMetadata(file.name, file.size, file.type);
-    if (!validation.isValid) {
-      return NextResponse.json(
-        { success: false, error: validation.error || "File validation failed." },
-        { status: 400 }
-      );
-    }
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const storedRecord = await saveUploadedFile(buffer, file.name, file.type || "application/octet-stream");
-
-    return NextResponse.json(
-      {
-        success: true,
-        fileReference: storedRecord.fileReference,
-        filename: storedRecord.sanitizedName,
-        sizeBytes: storedRecord.sizeBytes,
-        uploadedAt: storedRecord.uploadedAt,
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname) => {
+        // Enforce private/secure token generation with restricted content types & size
+        return {
+          allowedContentTypes: ALLOWED_MIME_TYPES,
+          maximumSizeInBytes: MAX_FILE_SIZE_BYTES, // 25 MB
+          addRandomSuffix: true,
+          tokenPayload: JSON.stringify({
+            uploadedAt: new Date().toISOString(),
+            pathname,
+          }),
+        };
       },
-      { status: 201 }
-    );
-  } catch (err) {
-    console.error("[API Upload Error]:", err);
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // Safe logging of upload completion metadata without private tokens
+        try {
+          console.log("[Blob Upload Completed]:", {
+            pathname: blob.pathname,
+            contentType: blob.contentType,
+            url: blob.url,
+            payload: tokenPayload,
+          });
+        } catch (error) {
+          console.error("[Blob onUploadCompleted Error]:", error);
+        }
+      },
+    });
+
+    return NextResponse.json(jsonResponse);
+  } catch (error) {
+    console.error("[Vercel Blob Upload Error]:", error);
     return NextResponse.json(
-      { success: false, error: "We couldn't upload this file. Please try again." },
-      { status: 500 }
+      { error: (error as Error).message || "An error occurred generating upload authorization." },
+      { status: 400 }
     );
   }
 }

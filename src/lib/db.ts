@@ -8,7 +8,8 @@ export type InquiryStatus = "NEW" | "REVIEWING" | "CONTACTED" | "QUOTED" | "CLOS
 export interface InquiryRecord {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
   companyName: string;
   productCategory: string;
   message: string;
@@ -48,7 +49,8 @@ export async function createInquiry(input: InquiryInput): Promise<InquiryRecord>
   const record: InquiryRecord = {
     id,
     name: input.name,
-    email: input.email,
+    email: input.email || null,
+    phone: input.phone || null,
     companyName: input.company,
     productCategory: input.productCategory,
     message: input.message,

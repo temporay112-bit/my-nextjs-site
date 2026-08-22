@@ -10,7 +10,13 @@ export type AnalyticsEventName =
   | "inquiry_submit"
   | "upload_start"
   | "upload_success"
-  | "upload_error";
+  | "upload_error"
+  | "catalogue_click"
+  | "certificate_view"
+  | "shipping_method_view"
+  | "payment_method_view"
+  | "email_click"
+  | "whatsapp_click";
 
 interface AnalyticsEventParams {
   category?: string;
@@ -20,6 +26,9 @@ interface AnalyticsEventParams {
   status?: "success" | "error";
   error_type?: string;
   source_section?: string;
+  action?: string;
+  file?: string;
+  method?: string;
 }
 
 export function trackEvent(

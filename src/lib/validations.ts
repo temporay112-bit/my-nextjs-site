@@ -1,6 +1,7 @@
 export interface InquiryInput {
   name: string;
-  email: string;
+  email?: string;
+  phone?: string;
   company: string;
   productCategory: string;
   message: string;
@@ -33,6 +34,7 @@ export const ALLOWED_FILE_EXTENSIONS = [
   ".png",
   ".jpg",
   ".jpeg",
+  ".webp",
   ".zip",
   ".svg",
 ];
@@ -44,6 +46,7 @@ export const ALLOWED_MIME_TYPES = [
   "image/vnd.adobe.photoshop",
   "image/png",
   "image/jpeg",
+  "image/webp",
   "image/svg+xml",
   "application/zip",
   "application/x-zip-compressed",
@@ -51,6 +54,7 @@ export const ALLOWED_MIME_TYPES = [
 ];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\./0-9]{4,20}$/;
 
 export function validateInquiryInput(raw: unknown): ValidationResult<InquiryInput> {
   const errors: Record<string, string> = {};
@@ -74,14 +78,29 @@ export function validateInquiryInput(raw: unknown): ValidationResult<InquiryInpu
     errors.name = "Name must not exceed 100 characters.";
   }
 
-  // Email
+  // Email and Phone validation (At least ONE required)
   const email = typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
-  if (!email) {
-    errors.email = "Please enter your business email.";
-  } else if (!EMAIL_REGEX.test(email)) {
-    errors.email = "Please enter a valid email address.";
-  } else if (email.length > 150) {
-    errors.email = "Email must not exceed 150 characters.";
+  const phone = typeof data.phone === "string" ? data.phone.trim() : "";
+
+  if (!email && !phone) {
+    errors.contact = "Please provide either your business email or phone/WhatsApp number.";
+    errors.email = "Please provide either your business email or phone/WhatsApp number.";
+  } else {
+    if (email) {
+      if (!EMAIL_REGEX.test(email)) {
+        errors.email = "Please enter a valid business email address.";
+      } else if (email.length > 150) {
+        errors.email = "Email must not exceed 150 characters.";
+      }
+    }
+
+    if (phone) {
+      if (!PHONE_REGEX.test(phone) || phone.replace(/\D/g, "").length < 6) {
+        errors.phone = "Please enter a valid phone or WhatsApp number.";
+      } else if (phone.length > 30) {
+        errors.phone = "Phone number must not exceed 30 characters.";
+      }
+    }
   }
 
   // Company
@@ -128,7 +147,8 @@ export function validateInquiryInput(raw: unknown): ValidationResult<InquiryInpu
     errors: {},
     data: {
       name,
-      email,
+      email: email || undefined,
+      phone: phone || undefined,
       company,
       productCategory,
       message,
