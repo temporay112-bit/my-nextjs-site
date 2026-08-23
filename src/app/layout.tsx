@@ -139,7 +139,11 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${sora.variable} ${inter.variable} ${barlow.variable}`}>
+    <html
+      lang="en"
+      className={`${sora.variable} ${inter.variable} ${barlow.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"
@@ -150,7 +154,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
-      <body className="bg-slots-white text-slots-black antialiased flex flex-col min-h-screen">
+      <body
+        className="bg-slots-white text-slots-black antialiased flex flex-col min-h-screen"
+        suppressHydrationWarning
+      >
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

@@ -1,21 +1,168 @@
 import React from "react";
 import type { Metadata } from "next";
+import { CapabilitiesHero } from "@/components/capabilities/CapabilitiesHero";
+import { CapabilityDeepDive } from "@/components/capabilities/CapabilityDeepDive";
+import { ProductDevelopment } from "@/components/capabilities/ProductDevelopment";
+import { QualityControlSection } from "@/components/capabilities/QualityControlSection";
+import { CapabilitiesCta } from "@/components/capabilities/CapabilitiesCta";
 
 export const metadata: Metadata = {
-  title: "Manufacturing Capabilities | OEM, ODM & Private Label",
-  description: "End-to-end custom apparel manufacturing capabilities: pattern drafting, sample development, fabric sourcing, cut & sew, and bulk export.",
+  title: "Sportswear Manufacturing Capabilities",
+  description:
+    "Explore SLOTS SPORTSWEAR manufacturing capabilities: OEM production, ODM concept development, private labeling, 5-stage product development, and rigorous multi-stage quality control.",
   alternates: {
     canonical: "/capabilities",
+  },
+  openGraph: {
+    title: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    description:
+      "Precision B2B sportswear manufacturing capabilities from tech pack review and sampling to high-capacity bulk production, private labeling, and worldwide export.",
+    url: "https://slotssportswear.com/capabilities",
+    siteName: "SLOTS SPORTSWEAR",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/images/factory/facility-main.jpg",
+        width: 1200,
+        height: 630,
+        alt: "SLOTS SPORTSWEAR Manufacturing Capabilities & Production Lines",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    description:
+      "Precision B2B sportswear manufacturing capabilities: OEM, ODM, private label, 5-stage product development, and multi-stage QC.",
+    images: ["/images/factory/facility-main.jpg"],
   },
 };
 
 export default function CapabilitiesPage() {
+  // Schema.org Structured Data for Capabilities Page
+  const capabilitiesPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    url: "https://slotssportswear.com/capabilities",
+    description:
+      "Comprehensive B2B sportswear manufacturing capabilities including OEM production, ODM design adaptation, private labeling, 5-stage product development, and rigorous quality control.",
+    publisher: {
+      "@type": "Organization",
+      name: "SLOTS SPORTSWEAR",
+      url: "https://slotssportswear.com",
+      logo: "https://slotssportswear.com/images/logo.png",
+    },
+    mainEntity: {
+      "@type": "Service",
+      name: "Custom Sportswear Manufacturing & Product Development",
+      serviceType: "Apparel Manufacturing",
+      provider: {
+        "@type": "Organization",
+        name: "SLOTS SPORTSWEAR",
+      },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Manufacturing Capabilities",
+        itemListElement: [
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Original Equipment Manufacturing (OEM)",
+              description:
+                "Precision sportswear manufacturing executed strictly according to buyer-supplied CAD drawings, tech packs, and measurement specifications.",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Original Design Manufacturing (ODM)",
+              description:
+                "Concept-to-product sportswear development leveraging factory silhouettes, pattern adaptation, and technical fabric sourcing.",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Private Label & Brand Customization",
+              description:
+                "Full-service private label branding including custom woven tags, embossed hang tags, silicone heat transfers, and branded packaging.",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "5-Stage Product Development",
+              description:
+                "End-to-end development workflow covering tech pack review, prototyping sampling, performance fabric selection, custom grading, and embellishment.",
+            },
+          },
+          {
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: "Multi-Stage Quality Control & Inspection",
+              description:
+                "Rigorous quality control spanning raw material testing, cutting accuracy audits, inline sewing checks, measurement verification, and final pre-packing inspection.",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://slotssportswear.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Capabilities",
+        item: "https://slotssportswear.com/capabilities",
+      },
+    ],
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <h1 className="font-sora text-3xl md:text-4xl font-extrabold uppercase text-slots-black">Manufacturing Capabilities</h1>
-      <p className="font-inter text-technical-grey mt-4 max-w-2xl leading-relaxed">
-        OEM, ODM, Private Label, Pattern Drafting, Sampling, Cutting, Sublimation, Embroidery, and Export Solutions.
-      </p>
-    </div>
+    <>
+      {/* Schema.org Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(capabilitiesPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
+      <div className="w-full">
+        {/* 01 Hero Section (Single H1) */}
+        <CapabilitiesHero />
+
+        {/* 02 OEM, ODM & Private Label Deep Dive */}
+        <CapabilityDeepDive />
+
+        {/* 03 5-Stage Product Development Workflow */}
+        <ProductDevelopment />
+
+        {/* 04 Systematic Quality Control & Inspection */}
+        <QualityControlSection />
+
+        {/* 05 Closing Conversion CTA */}
+        <CapabilitiesCta />
+      </div>
+    </>
   );
 }

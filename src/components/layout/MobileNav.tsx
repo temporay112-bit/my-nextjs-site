@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ALL_NAV_ITEMS, PRIMARY_CTA } from "@/data/navigation";
 import { Button } from "@/components/shared/Button";
-import { X, ArrowRight, ShieldCheck, Globe, Search } from "lucide-react";
+import { X, ArrowRight, ShieldCheck, Globe, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -86,11 +86,13 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         <div className="flex-1 px-5 py-6 space-y-6">
           {/* Quick Search */}
           <form
+            action="/products"
+            method="GET"
             onSubmit={(e) => {
               e.preventDefault();
               const form = e.currentTarget;
-              const input = form.elements.namedItem("q") as HTMLInputElement;
-              if (input.value.trim()) {
+              const input = form.elements.namedItem("search") as HTMLInputElement;
+              if (input && input.value.trim()) {
                 window.location.href = `/products?search=${encodeURIComponent(input.value.trim())}`;
               }
             }}
@@ -99,7 +101,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
             <Search className="w-4 h-4 absolute left-3.5 text-technical-grey" />
             <input
               type="text"
-              name="q"
+              name="search"
               placeholder="Search products or OEM..."
               className="w-full pl-10 pr-4 py-2.5 bg-light-grey/40 border border-light-grey rounded-full text-xs font-inter text-slots-black placeholder:text-technical-grey focus:outline-none focus:border-slots-black transition-colors"
             />
@@ -135,6 +137,30 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                   </li>
                 );
               })}
+              {/* Client Portal / Sign In Link */}
+              <li>
+                <Link
+                  href="/login"
+                  onClick={onClose}
+                  className={cn(
+                    "flex items-center justify-between px-4 py-3.5 rounded-xl font-inter text-base transition-all duration-150",
+                    pathname === "/login" || pathname === "/account"
+                      ? "bg-light-grey/80 font-bold text-slots-black"
+                      : "text-graphite hover:bg-light-grey/40 hover:text-slots-black font-medium"
+                  )}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <User className="w-4 h-4 text-slots-black" />
+                    <span>Client Portal / Sign In</span>
+                  </span>
+                  <ArrowRight
+                    className={cn(
+                      "w-4 h-4 transition-transform",
+                      pathname === "/login" || pathname === "/account" ? "text-slots-black translate-x-1" : "text-technical-grey"
+                    )}
+                  />
+                </Link>
+              </li>
             </ul>
           </nav>
 

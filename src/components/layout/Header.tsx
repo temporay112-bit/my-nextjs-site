@@ -59,8 +59,8 @@ export function Header({ className }: HeaderProps) {
 
           {/* Right Area: Utilities & CTA */}
           <div className="flex items-center gap-3 lg:gap-4">
-            {/* Desktop Utility Icons (Search + Account) */}
-            <HeaderUtility className="hidden lg:flex" />
+            {/* Utility Icons (Search + Login/Account) — visible across mobile, tablet, and desktop */}
+            <HeaderUtility className="flex" />
 
             {/* Primary Action Button (Desktop & Tablet) */}
             <div className="hidden sm:block">

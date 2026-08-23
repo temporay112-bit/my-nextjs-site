@@ -41,9 +41,9 @@ export function HeaderUtility({ className }: HeaderUtilityProps) {
         <span className="w-px h-3.5 bg-technical-grey/30" aria-hidden="true" />
 
         <Link
-          href="/contact"
+          href="/login"
           className="p-1.5 text-graphite hover:text-slots-black transition-colors rounded-full focus-visible:ring-2 focus-visible:ring-slots-black focus-visible:outline-none"
-          aria-label="Client Portal / Inquire"
+          aria-label="Client Portal / Sign In"
         >
           <User className="w-4 h-4 stroke-[2]" />
         </Link>
@@ -52,12 +52,15 @@ export function HeaderUtility({ className }: HeaderUtilityProps) {
       {/* Expandable Search Overlay */}
       {isSearchOpen && (
         <form
+          action="/products"
+          method="GET"
           onSubmit={handleSearchSubmit}
-          className="absolute right-0 top-full mt-2 w-72 md:w-80 bg-slots-white border border-light-grey rounded-xl shadow-header-scrolled p-3 z-50 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-slots-white border border-light-grey rounded-xl shadow-header-scrolled p-3 z-50 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150"
         >
           <Search className="w-4 h-4 text-technical-grey flex-shrink-0" />
           <input
             type="text"
+            name="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products, OEM, golfwear..."

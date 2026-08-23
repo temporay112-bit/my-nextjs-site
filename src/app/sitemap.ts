@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
+import { getPublicOrigin } from "@/lib/url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://slotssportswear.com";
+  const baseUrl = getPublicOrigin();
   const now = new Date();
 
   return [

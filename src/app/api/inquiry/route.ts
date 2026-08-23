@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     // Persist inquiry record in DB
     const inquiryRecord = await createInquiry(validation.data);
 
-    // Dispatch real email to receiver (shahrangujjar00@gmail.com) via Resend
+    // Dispatch real email to receiver (shahrangujjar00@gmail.com) via Nodemailer
     const emailResult = await sendQuoteNotificationEmail(
       validation.data,
       inquiryRecord.id,

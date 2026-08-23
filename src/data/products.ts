@@ -20,7 +20,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     slug: "golfwear",
     description:
       "Performance-focused golf apparel designed for comfort, movement and premium brand presentation.",
-    image: "/images/products/golfwear.jpg",
+    image: "/images/products/Polo/2.png",
     alt: "SLOTS SPORTSWEAR Performance Golfwear and Apparel Manufacturing",
     href: "/products#golfwear",
     featured: true,
@@ -34,7 +34,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     slug: "activewear",
     description:
       "Custom performance apparel for training, fitness and active lifestyle brands.",
-    image: "/images/products/activewear.jpg",
+    image: "/images/products/Shirts/1.png",
     alt: "SLOTS SPORTSWEAR Custom Activewear and Soccer Uniforms",
     href: "/products#activewear",
     featured: false,
@@ -47,7 +47,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     slug: "teamwear",
     description:
       "Custom team apparel built around performance, identity and coordinated branding.",
-    image: "/images/products/teamwear.jpg",
+    image: "/images/products/Polo/1.png",
     alt: "SLOTS SPORTSWEAR Teamwear and Athletic Outerwear Manufacturing",
     href: "/products#teamwear",
     featured: false,
@@ -60,7 +60,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     slug: "tracksuits",
     description:
       "Custom coordinated performance sets for teams, brands and activewear collections.",
-    image: "/images/products/tracksuits.jpg",
+    image: "/images/products/Short/1.png",
     alt: "SLOTS SPORTSWEAR Custom Tracksuits and Streetwear Hoodies",
     href: "/products#tracksuits",
     featured: false,
@@ -73,7 +73,7 @@ export const PRODUCT_CATEGORIES: ProductCategory[] = [
     slug: "basics",
     description:
       "Essential custom sportswear styles developed for scalable B2B production.",
-    image: "/images/products/basics.jpg",
+    image: "/images/products/Tank Top/1.png",
     alt: "SLOTS SPORTSWEAR Essential Sportswear Basics and Blank Production",
     href: "/products#basics",
     featured: false,

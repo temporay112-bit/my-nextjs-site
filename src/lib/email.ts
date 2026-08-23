@@ -1,22 +1,22 @@
 /**
  * SLOTS SPORTSWEAR — Email Service
  *
- * Secure server-side transactional email delivery for B2B quote inquiries.
- * Uses Resend API via native HTTPS fetch.
- *
- * FEATURES:
- * - Direct clickable access link for uploaded Tech Pack files.
- * - Handles Email-only, Phone-only, and Both contact submissions.
- * - Sanitizes all user inputs before HTML rendering.
- * - Dynamic Reply-To header when email exists.
+ * Transactional email templates and delivery for:
+ * 1. B2B Quote Requests / Inquiry Notifications to factory team
+ * 2. Account Verification Emails with secure activation tokens
+ * 3. Password Reset Notifications
  */
 
+import { getTransporter, sendMail, verifySmtpConnection } from "./email/mailer";
+import type { EmailDeliveryResult } from "./email/mailer";
 import { InquiryInput } from "@/lib/validations";
+import { getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl } from "@/lib/url";
 
-interface EmailDeliveryResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+export { getTransporter, verifySmtpConnection, getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl };
+export type { EmailDeliveryResult };
+
+function getQuoteReceiver(): string {
+  return process.env.QUOTE_RECEIVER_EMAIL || process.env.EMAIL_USER || "shahrangujjar00@gmail.com";
 }
 
 function escapeHtml(str: string): string {
@@ -28,26 +28,16 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
+/**
+ * 1. Send B2B Quote Inquiry Notification to Factory
+ */
 export async function sendQuoteNotificationEmail(
   inquiry: InquiryInput,
   inquiryId: string,
-  createdAt: string
+  createdAt: string = new Date().toISOString()
 ): Promise<EmailDeliveryResult> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const receiverEmail = process.env.QUOTE_RECEIVER_EMAIL || "shahrangujjar00@gmail.com";
-  const fromEmail = process.env.QUOTE_FROM_EMAIL || "SLOTS SPORTSWEAR <onboarding@resend.dev>";
-
-  if (!apiKey) {
-    console.error("[Email Service Error]: RESEND_API_KEY is not configured in environment variables.");
-    return {
-      success: false,
-      error: "Email service not configured.",
-    };
-  }
-
   const subject = `New SLOTS SPORTSWEAR B2B Quote Request — ${inquiry.company}`;
 
-  // Build file reference and clickable link
   let fileHtml = '<span style="color:#777777;">No file attached</span>';
   let fileText = "No file attached";
 
@@ -56,14 +46,14 @@ export async function sendQuoteNotificationEmail(
     const isUrl = rawRef.startsWith("http://") || rawRef.startsWith("https://");
     const fileUrl = isUrl
       ? rawRef
-      : `/api/upload/file?pathname=${encodeURIComponent(rawRef)}`;
-    const filename = rawRef.split("/").pop() || "Tech Pack";
+      : `${getPublicOrigin()}${rawRef.startsWith("/") ? "" : "/"}${rawRef}`;
+    const filename = isUrl ? rawRef.split("/").pop() || "TechPack-Attachment" : rawRef;
 
     fileHtml = `
       <div>
         <span style="color:#FFFFFF;font-weight:bold;display:block;margin-bottom:6px;">${escapeHtml(filename)}</span>
         <a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener noreferrer" 
-           style="display:inline-block;padding:7px 16px;background-color:#2A2A2A;color:#B7FF00;font-size:12px;font-weight:bold;text-decoration:none;border-radius:6px;border:1px solid #B7FF00;">
+           style="display:inline-block;padding:8px 18px;background-color:#2A2A2A;color:#B7FF00;font-size:12px;font-weight:bold;text-decoration:none;border-radius:4px;border:1px solid #B7FF00;text-transform:uppercase;letter-spacing:1px;">
           OPEN / DOWNLOAD TECH PACK &rarr;
         </a>
       </div>
@@ -71,211 +61,199 @@ export async function sendQuoteNotificationEmail(
     fileText = `${filename} (${fileUrl})`;
   }
 
-  // Build contact details section
-  const contactRows: string[] = [];
-  if (inquiry.email) {
-    contactRows.push(`
-      <tr>
-        <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;width:140px;">Business Email:</td>
-        <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#B7FF00;font-size:14px;">
-          <a href="mailto:${escapeHtml(inquiry.email)}" style="color:#B7FF00;text-decoration:none;">${escapeHtml(inquiry.email)}</a>
-        </td>
-      </tr>
-    `);
-  }
-  if (inquiry.phone) {
-    contactRows.push(`
-      <tr>
-        <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;width:140px;">Phone / WhatsApp:</td>
-        <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#FFFFFF;font-size:14px;font-weight:bold;">
-          <a href="tel:${escapeHtml(inquiry.phone)}" style="color:#FFFFFF;text-decoration:none;">${escapeHtml(inquiry.phone)}</a>
-        </td>
-      </tr>
-    `);
-  }
-
-  const htmlContent = `
+  const html = `
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(subject)}</title>
-</head>
-<body style="margin:0;padding:0;background-color:#050505;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#FFFFFF;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#050505;padding:30px 15px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#171717;border-radius:12px;border:1px solid #2A2A2A;overflow:hidden;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="padding:28px 32px;background-color:#050505;border-bottom:2px solid #B7FF00;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <div style="font-size:20px;font-weight:900;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;">
-                      SLOTS <span style="color:#B7FF00;">SPORTSWEAR</span>
-                    </div>
-                    <div style="font-size:11px;color:#777777;letter-spacing:1px;text-transform:uppercase;margin-top:4px;">
-                      B2B Manufacturing Inquiry Notification
-                    </div>
-                  </td>
-                  <td align="right">
-                    <span style="display:inline-block;padding:4px 10px;background-color:#2A2A2A;color:#B7FF00;font-size:10px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;border-radius:4px;">
-                      NEW QUOTE
-                    </span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Main Content -->
-          <tr>
-            <td style="padding:32px;">
-              <h2 style="margin:0 0 20px;font-size:18px;font-weight:bold;color:#FFFFFF;text-transform:uppercase;letter-spacing:0.5px;">
-                Inquiry Details (#${escapeHtml(inquiryId)})
-              </h2>
-
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;width:140px;">Brand / Company:</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#FFFFFF;font-size:14px;font-weight:bold;">${escapeHtml(inquiry.company)}</td>
-                </tr>
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;">Contact Name:</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#FFFFFF;font-size:14px;">${escapeHtml(inquiry.name)}</td>
-                </tr>
-                ${contactRows.join("")}
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;">Product Category:</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#FFFFFF;font-size:14px;text-transform:capitalize;">${escapeHtml(inquiry.productCategory)}</td>
-                </tr>
-                <tr>
-                  <td style="padding:12px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;vertical-align:top;">Uploaded File:</td>
-                  <td style="padding:12px 0;border-bottom:1px solid #2A2A2A;color:#FFFFFF;font-size:14px;">
-                    ${fileHtml}
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;">Timestamp:</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #2A2A2A;color:#777777;font-size:13px;">${escapeHtml(createdAt)}</td>
-                </tr>
-              </table>
-
-              <!-- Project Requirements Box -->
-              <div style="margin-top:20px;padding:16px;background-color:#050505;border:1px solid #2A2A2A;border-radius:8px;">
-                <div style="font-size:11px;font-weight:bold;color:#777777;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
-                  Project Requirements & Specifications:
-                </div>
-                <div style="font-size:14px;color:#E9E9E9;line-height:1.6;white-space:pre-wrap;">
-${escapeHtml(inquiry.message)}
-                </div>
-              </div>
-
-              <!-- Quick Reply / Contact Buyer CTA -->
-              <div style="margin-top:28px;text-align:center;">
-                ${
-                  inquiry.email
-                    ? `<a href="mailto:${escapeHtml(inquiry.email)}?subject=Re:%20SLOTS%20SPORTSWEAR%20Quote%20Inquiry%20(${escapeHtml(inquiry.company)})" 
-                          style="display:inline-block;padding:12px 28px;background-color:#B7FF00;color:#050505;font-size:13px;font-weight:bold;text-decoration:none;text-transform:uppercase;letter-spacing:1px;border-radius:999px;">
-                         Reply Directly via Email
-                       </a>`
-                    : inquiry.phone
-                    ? `<a href="https://wa.me/${escapeHtml(inquiry.phone.replace(/[^0-9]/g, ''))}" 
-                          style="display:inline-block;padding:12px 28px;background-color:#B7FF00;color:#050505;font-size:13px;font-weight:bold;text-decoration:none;text-transform:uppercase;letter-spacing:1px;border-radius:999px;">
-                         Contact Buyer on WhatsApp
-                       </a>`
-                    : ""
-                }
-              </div>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 32px;background-color:#050505;border-top:1px solid #2A2A2A;text-align:center;font-size:11px;color:#777777;">
-              This notification was generated automatically by the SLOTS SPORTSWEAR Website Inquiry System.<br>
-              Direct contact email: <a href="mailto:${escapeHtml(receiverEmail)}" style="color:#777777;">${escapeHtml(receiverEmail)}</a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+<html>
+<head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;padding:0;background-color:#050505;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#E9E9E9;">
+  <div style="max-width:600px;margin:0 auto;padding:24px;background-color:#171717;border:1px solid #2A2A2A;">
+    <div style="border-bottom:2px solid #B7FF00;padding-bottom:16px;margin-bottom:20px;">
+      <h1 style="color:#FFFFFF;font-size:20px;margin:0;text-transform:uppercase;letter-spacing:1.5px;">SLOTS SPORTSWEAR</h1>
+      <p style="color:#B7FF00;font-size:12px;margin:4px 0 0 0;font-weight:bold;letter-spacing:1px;">NEW B2B QUOTATION INQUIRY</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:14px;">
+      <tr><td style="padding:8px 0;color:#777777;width:130px;">Inquiry ID:</td><td style="color:#FFFFFF;font-weight:bold;">#${escapeHtml(inquiryId)}</td></tr>
+      <tr><td style="padding:8px 0;color:#777777;">Client Name:</td><td style="color:#FFFFFF;">${escapeHtml(inquiry.name)}</td></tr>
+      <tr><td style="padding:8px 0;color:#777777;">Company:</td><td style="color:#B7FF00;font-weight:bold;">${escapeHtml(inquiry.company)}</td></tr>
+      ${inquiry.email ? `<tr><td style="padding:8px 0;color:#777777;">Email:</td><td><a href="mailto:${escapeHtml(inquiry.email)}" style="color:#B7FF00;">${escapeHtml(inquiry.email)}</a></td></tr>` : ""}
+      ${inquiry.phone ? `<tr><td style="padding:8px 0;color:#777777;">Phone / WhatsApp:</td><td style="color:#FFFFFF;">${escapeHtml(inquiry.phone)}</td></tr>` : ""}
+      <tr><td style="padding:8px 0;color:#777777;">Product Category:</td><td style="color:#FFFFFF;">${escapeHtml(inquiry.productCategory || "General Sportswear")}</td></tr>
+      <tr><td style="padding:8px 0;color:#777777;">Received At:</td><td style="color:#FFFFFF;">${escapeHtml(createdAt)}</td></tr>
+    </table>
+    <div style="background-color:#050505;padding:16px;border:1px solid #2A2A2A;margin-bottom:20px;">
+      <h3 style="color:#FFFFFF;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;">Project Details / Message:</h3>
+      <p style="color:#D1D5DB;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${escapeHtml(inquiry.message)}</p>
+    </div>
+    <div style="background-color:#050505;padding:16px;border:1px solid #2A2A2A;margin-bottom:20px;">
+      <h3 style="color:#FFFFFF;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;">Tech Pack / Artwork Attachment:</h3>
+      ${fileHtml}
+    </div>
+    <div style="font-size:11px;color:#777777;text-align:center;padding-top:16px;border-top:1px solid #2A2A2A;">
+      SLOTS SPORTSWEAR &bull; Small Industrial Estate, Sialkot 51310, Punjab, Pakistan
+    </div>
+  </div>
 </body>
 </html>
-  `;
-
-  const textContent = `
-NEW SLOTS SPORTSWEAR B2B QUOTE REQUEST
-=========================================
-
-Inquiry ID: #${inquiryId}
-Company: ${inquiry.company}
-Contact Name: ${inquiry.name}
-Email: ${inquiry.email || "Not provided"}
-Phone / WhatsApp: ${inquiry.phone || "Not provided"}
-Product Category: ${inquiry.productCategory}
-Uploaded File: ${fileText}
-Timestamp: ${createdAt}
-
-PROJECT REQUIREMENTS:
----------------------
-${inquiry.message}
-
-=========================================
 `;
 
-  try {
-    const payload: {
-      from: string;
-      to: string[];
-      reply_to?: string;
-      subject: string;
-      html: string;
-      text: string;
-    } = {
-      from: fromEmail,
-      to: [receiverEmail],
-      subject: subject,
-      html: htmlContent,
-      text: textContent,
-    };
+  const text = `SLOTS SPORTSWEAR — B2B QUOTATION INQUIRY
+Inquiry ID: #${inquiryId}
+Client: ${inquiry.name}
+Company: ${inquiry.company}
+Email: ${inquiry.email || "N/A"}
+Phone: ${inquiry.phone || "N/A"}
+Category: ${inquiry.productCategory || "General Sportswear"}
+Received: ${createdAt}
 
-    if (inquiry.email) {
-      payload.reply_to = inquiry.email;
-    }
+Project Details / Message:
+${inquiry.message}
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+Tech Pack / Attachment:
+${fileText}
+`;
 
-    const data = await response.json();
+  return sendMail({
+    to: getQuoteReceiver(),
+    subject,
+    html,
+    text,
+    replyTo: inquiry.email || undefined,
+  });
+}
 
-    if (!response.ok) {
-      console.error("[Resend API Error]:", data);
-      return {
-        success: false,
-        error: data.message || "Failed to send email notification.",
-      };
-    }
+/**
+ * 2. Send Customer Email Verification Link
+ */
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  tokenOrUrl: string,
+  request?: Parameters<typeof buildVerifyEmailUrl>[1]
+): Promise<EmailDeliveryResult> {
+  const verifyUrl = tokenOrUrl.startsWith("http://") || tokenOrUrl.startsWith("https://")
+    ? tokenOrUrl
+    : buildVerifyEmailUrl(tokenOrUrl, request);
+  const subject = "Verify Your SLOTS SPORTSWEAR Account";
 
-    return {
-      success: true,
-      messageId: data.id,
-    };
-  } catch (err: unknown) {
-    console.error("[Email Transport Error]:", err);
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : "Network error during email dispatch.",
-    };
-  }
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;padding:0;background-color:#050505;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#E9E9E9;">
+  <div style="max-width:560px;margin:40px auto;padding:32px;background-color:#171717;border:1px solid #2A2A2A;">
+    <div style="border-bottom:2px solid #B7FF00;padding-bottom:16px;margin-bottom:24px;text-align:center;">
+      <h1 style="color:#FFFFFF;font-size:22px;margin:0;text-transform:uppercase;letter-spacing:1.5px;">SLOTS SPORTSWEAR</h1>
+      <p style="color:#B7FF00;font-size:12px;margin:4px 0 0 0;font-weight:bold;letter-spacing:1px;">ACCOUNT VERIFICATION</p>
+    </div>
+    
+    <h2 style="color:#FFFFFF;font-size:18px;margin:0 0 12px 0;">Hello ${escapeHtml(name)},</h2>
+    <p style="color:#9CA3AF;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Thank you for registering with SLOTS SPORTSWEAR. Please verify your email address to activate your B2B manufacturing and client portal access.
+    </p>
+
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${verifyUrl}" target="_blank" rel="noopener noreferrer"
+         style="display:inline-block;padding:14px 32px;background-color:#B7FF00;color:#050505;font-size:14px;font-weight:bold;text-decoration:none;text-transform:uppercase;letter-spacing:1px;">
+        VERIFY EMAIL ADDRESS &rarr;
+      </a>
+    </div>
+
+    <p style="color:#777777;font-size:12px;line-height:1.5;margin:24px 0 0 0;">
+      If the button above does not work, copy and paste this link into your browser:<br>
+      <a href="${verifyUrl}" style="color:#B7FF00;word-break:break-all;">${verifyUrl}</a>
+    </p>
+
+    <div style="font-size:11px;color:#555555;text-align:center;padding-top:24px;margin-top:32px;border-top:1px solid #2A2A2A;">
+      This verification link is valid for 24 hours. If you did not create an account, you can safely ignore this email.<br>
+      SLOTS SPORTSWEAR &bull; Sialkot 51310, Punjab, Pakistan
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `Hello ${name},
+
+Thank you for registering with SLOTS SPORTSWEAR. Please verify your email address to activate your account:
+${verifyUrl}
+
+This link is valid for 24 hours.
+If you did not request this, you can safely ignore this email.
+`;
+
+  return sendMail({
+    to: email,
+    subject,
+    html,
+    text,
+  });
+}
+
+/**
+ * 3. Send Password Reset Email Link
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  tokenOrUrl: string,
+  request?: Parameters<typeof buildResetPasswordUrl>[1]
+): Promise<EmailDeliveryResult> {
+  const resetUrl = tokenOrUrl.startsWith("http://") || tokenOrUrl.startsWith("https://")
+    ? tokenOrUrl
+    : buildResetPasswordUrl(tokenOrUrl, request);
+  const subject = "SLOTS SPORTSWEAR PASSWORD RESET REQUEST";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;padding:0;background-color:#050505;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#E9E9E9;">
+  <div style="max-width:560px;margin:40px auto;padding:32px;background-color:#171717;border:1px solid #2A2A2A;">
+    <div style="border-bottom:2px solid #B7FF00;padding-bottom:16px;margin-bottom:24px;text-align:center;">
+      <h1 style="color:#FFFFFF;font-size:22px;margin:0;text-transform:uppercase;letter-spacing:1.5px;">SLOTS SPORTSWEAR</h1>
+      <p style="color:#B7FF00;font-size:12px;margin:4px 0 0 0;font-weight:bold;letter-spacing:1px;">PASSWORD RESET REQUEST</p>
+    </div>
+    
+    <h2 style="color:#FFFFFF;font-size:18px;margin:0 0 12px 0;">Hello ${escapeHtml(name)},</h2>
+    <p style="color:#9CA3AF;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      We received a request to reset your password for your SLOTS SPORTSWEAR account. Click the button below to choose a new password.
+    </p>
+
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${resetUrl}" target="_blank" rel="noopener noreferrer"
+         style="display:inline-block;padding:14px 32px;background-color:#B7FF00;color:#050505;font-size:14px;font-weight:bold;text-decoration:none;text-transform:uppercase;letter-spacing:1px;">
+        RESET PASSWORD &rarr;
+      </a>
+    </div>
+
+    <p style="color:#777777;font-size:12px;line-height:1.5;margin:24px 0 0 0;">
+      If the button above does not work, copy and paste this link into your browser:<br>
+      <a href="${resetUrl}" style="color:#B7FF00;word-break:break-all;">${resetUrl}</a>
+    </p>
+
+    <div style="font-size:11px;color:#555555;text-align:center;padding-top:24px;margin-top:32px;border-top:1px solid #2A2A2A;">
+      This password reset link is valid for 1 hour. If you did not request a password reset, you can safely ignore this email.<br>
+      SLOTS SPORTSWEAR &bull; Sialkot 51310, Punjab, Pakistan
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const text = `Hello ${name},
+
+We received a request to reset your password for your SLOTS SPORTSWEAR account.
+Click or visit the link below to choose a new password:
+${resetUrl}
+
+This link is valid for 1 hour.
+If you did not request this change, you can safely ignore this email.
+`;
+
+  return sendMail({
+    to: email,
+    subject,
+    html,
+    text,
+  });
 }
