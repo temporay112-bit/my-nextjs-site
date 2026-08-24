@@ -1,5 +1,11 @@
 import fs from "fs";
 import path from "path";
+import { loadEnvConfig } from "@next/env";
+
+try {
+  loadEnvConfig(process.cwd());
+} catch {}
+
 import { getPostgresPool, initPostgresSchema, isPostgresConfigured } from "./postgres";
 import type { DatabaseSchema } from "./types";
 
@@ -73,34 +79,65 @@ export async function migrateJsonToPostgres(): Promise<{
     // 1. Migrate Users
     if (data.users && data.users.length > 0) {
       for (const u of data.users) {
-        await client.query(
-          `INSERT INTO users (id, name, email, phone, password_hash, role, status, email_verified, reset_token, reset_token_expires_at, created_at, updated_at, last_login_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-           ON CONFLICT (email) DO UPDATE SET
-             name = EXCLUDED.name,
-             phone = EXCLUDED.phone,
-             password_hash = EXCLUDED.password_hash,
-             role = EXCLUDED.role,
-             status = EXCLUDED.status,
-             email_verified = EXCLUDED.email_verified,
-             updated_at = EXCLUDED.updated_at,
-             last_login_at = EXCLUDED.last_login_at`,
-          [
-            u.id,
-            u.name,
-            u.email.toLowerCase().trim(),
-            u.phone || null,
-            u.passwordHash,
-            u.role || "CUSTOMER",
-            u.status || "ACTIVE",
-            Boolean(u.emailVerified),
-            u.resetToken || null,
-            u.resetTokenExpiresAt || null,
-            u.createdAt || new Date().toISOString(),
-            u.updatedAt || new Date().toISOString(),
-            u.lastLoginAt || null,
-          ]
-        );
+        const cleanEmail = u.email ? u.email.toLowerCase().trim() : null;
+        if (cleanEmail) {
+          await client.query(
+            `INSERT INTO users (id, name, email, phone, password_hash, role, status, email_verified, reset_token, reset_token_expires_at, created_at, updated_at, last_login_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             ON CONFLICT (email) DO UPDATE SET
+               name = EXCLUDED.name,
+               phone = EXCLUDED.phone,
+               password_hash = EXCLUDED.password_hash,
+               role = EXCLUDED.role,
+               status = EXCLUDED.status,
+               email_verified = EXCLUDED.email_verified,
+               updated_at = EXCLUDED.updated_at,
+               last_login_at = EXCLUDED.last_login_at`,
+            [
+              u.id,
+              u.name,
+              cleanEmail,
+              u.phone || null,
+              u.passwordHash,
+              u.role || "CUSTOMER",
+              u.status || "ACTIVE",
+              Boolean(u.emailVerified),
+              u.resetToken || null,
+              u.resetTokenExpiresAt || null,
+              u.createdAt || new Date().toISOString(),
+              u.updatedAt || new Date().toISOString(),
+              u.lastLoginAt || null,
+            ]
+          );
+        } else {
+          await client.query(
+            `INSERT INTO users (id, name, email, phone, password_hash, role, status, email_verified, reset_token, reset_token_expires_at, created_at, updated_at, last_login_at)
+             VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+             ON CONFLICT (id) DO UPDATE SET
+               name = EXCLUDED.name,
+               phone = EXCLUDED.phone,
+               password_hash = EXCLUDED.password_hash,
+               role = EXCLUDED.role,
+               status = EXCLUDED.status,
+               email_verified = EXCLUDED.email_verified,
+               updated_at = EXCLUDED.updated_at,
+               last_login_at = EXCLUDED.last_login_at`,
+            [
+              u.id,
+              u.name,
+              u.phone || null,
+              u.passwordHash,
+              u.role || "CUSTOMER",
+              u.status || "ACTIVE",
+              Boolean(u.emailVerified),
+              u.resetToken || null,
+              u.resetTokenExpiresAt || null,
+              u.createdAt || new Date().toISOString(),
+              u.updatedAt || new Date().toISOString(),
+              u.lastLoginAt || null,
+            ]
+          );
+        }
         counts.users++;
       }
     }
@@ -108,6 +145,9 @@ export async function migrateJsonToPostgres(): Promise<{
     // 2. Migrate Customer Profiles
     if (data.customerProfiles && data.customerProfiles.length > 0) {
       for (const p of data.customerProfiles) {
+        const userCheck = await client.query("SELECT 1 FROM users WHERE id = $1", [p.userId]);
+        if (userCheck.rows.length === 0) continue;
+
         await client.query(
           `INSERT INTO customer_profiles (id, user_id, company_name, phone, country, notes, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

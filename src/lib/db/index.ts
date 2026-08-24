@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { randomBytes, scryptSync } from "crypto";
+import { loadEnvConfig } from "@next/env";
+
+try {
+  loadEnvConfig(process.cwd());
+} catch {}
 
 import type {
   User,

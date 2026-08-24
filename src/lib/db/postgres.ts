@@ -1,9 +1,19 @@
 import { Pool, PoolConfig } from "pg";
+import { loadEnvConfig } from "@next/env";
+
+try {
+  loadEnvConfig(process.cwd());
+} catch {}
 
 let pool: Pool | null = null;
 let schemaInitialized = false;
 
 export function getDatabaseUrl(): string | undefined {
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+    try {
+      loadEnvConfig(process.cwd());
+    } catch {}
+  }
   return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
 }
 
@@ -57,7 +67,7 @@ export async function initPostgresSchema(): Promise<void> {
     CREATE TABLE IF NOT EXISTS users (
       id VARCHAR(128) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) UNIQUE NOT NULL,
+      email VARCHAR(255) UNIQUE,
       phone VARCHAR(64),
       password_hash TEXT NOT NULL,
       role VARCHAR(32) NOT NULL DEFAULT 'CUSTOMER',
