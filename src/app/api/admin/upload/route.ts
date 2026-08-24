@@ -35,15 +35,29 @@ export async function POST(request: NextRequest) {
     const ext = path.extname(file.name) || ".png";
     const safeFilename = `products/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
-    const blob = await put(safeFilename, file, {
-      access: "public",
-      addRandomSuffix: false,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
+    let blob;
+    try {
+      blob = await put(safeFilename, file, {
+        access: "public",
+        addRandomSuffix: false,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+    } catch (accessErr: any) {
+      if (accessErr?.message && accessErr.message.toLowerCase().includes("private store")) {
+        blob = await put(safeFilename, file, {
+          access: "private",
+          addRandomSuffix: false,
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+      } else {
+        throw accessErr;
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      url: blob.url,
+      url: blob.url || blob.downloadUrl,
+      downloadUrl: blob.downloadUrl,
       filename: safeFilename,
     });
   } catch (err: any) {

@@ -42,16 +42,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const safeExt = originalExt || ".pdf";
       const safeFilename = `techpacks/tp_${Date.now()}_${randomBytes(4).toString("hex")}${safeExt}`;
 
-      // Upload directly to Vercel Blob storage (Public CDN URL)
-      const blob = await put(safeFilename, file, {
-        access: "public",
-        addRandomSuffix: false,
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-      });
+      // Upload directly to Vercel Blob storage (Supports both public and private configured stores)
+      let blob;
+      try {
+        blob = await put(safeFilename, file, {
+          access: "public",
+          addRandomSuffix: false,
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+      } catch (accessErr: any) {
+        if (accessErr?.message && accessErr.message.toLowerCase().includes("private store")) {
+          blob = await put(safeFilename, file, {
+            access: "private",
+            addRandomSuffix: false,
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+          });
+        } else {
+          throw accessErr;
+        }
+      }
 
       return NextResponse.json({
         success: true,
-        url: blob.url,
+        url: blob.url || blob.downloadUrl,
+        downloadUrl: blob.downloadUrl,
         pathname: blob.pathname,
         filename: file.name,
         size: file.size,
