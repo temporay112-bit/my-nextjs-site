@@ -36,7 +36,7 @@ export function getPostgresPool(): Pool {
     ssl: isLocalhost ? false : { rejectUnauthorized: false },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 15000,
   };
 
   pool = new Pool(config);
