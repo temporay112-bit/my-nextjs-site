@@ -34,9 +34,9 @@ export function getPostgresPool(): Pool {
   const config: PoolConfig = {
     connectionString,
     ssl: isLocalhost ? false : { rejectUnauthorized: false },
-    max: 10,
+    max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 15000,
+    connectionTimeoutMillis: 30000,
   };
 
   pool = new Pool(config);
@@ -50,8 +50,21 @@ export function getPostgresPool(): Pool {
 
 export async function query<T = any>(text: string, params: any[] = []): Promise<T[]> {
   const p = getPostgresPool();
-  const res = await p.query(text, params);
-  return res.rows;
+  try {
+    const res = await p.query(text, params);
+    return res.rows;
+  } catch (err: any) {
+    if (
+      err.message?.includes("timeout") ||
+      err.message?.includes("terminated") ||
+      err.message?.includes("closed")
+    ) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const res = await p.query(text, params);
+      return res.rows;
+    }
+    throw err;
+  }
 }
 
 export async function queryOne<T = any>(text: string, params: any[] = []): Promise<T | null> {

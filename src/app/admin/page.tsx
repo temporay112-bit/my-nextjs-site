@@ -13,10 +13,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export default function AdminDashboardPage() {
-  const allProducts = db.getProducts({ publishedOnly: false });
+export default async function AdminDashboardPage() {
+  const allProducts = await db.getProductsAsync({ publishedOnly: false });
   const publishedCount = allProducts.products.filter((p) => p.published).length;
-  const categories = db.getCategories(false);
+  const categories = await db.getCategoriesAsync(false);
   const orders = db.getOrders();
   const users = db.getUsers();
   const customers = users.filter((u) => u.role === "CUSTOMER");

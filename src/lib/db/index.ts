@@ -47,6 +47,8 @@ export type {
   PasswordResetToken,
 } from "./types";
 
+import { getSeedData } from "./seed";
+
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "slots_db.json");
 
@@ -57,31 +59,58 @@ function hashPassword(password: string): string {
 }
 
 function getInitialFallbackSchema(): DatabaseSchema {
-  const now = new Date().toISOString();
+  const seed = getSeedData();
+  const adminIndex = seed.users.findIndex((u) => u.email === "shahrangujjar00@gmail.com");
+  if (adminIndex === -1) {
+    seed.users.unshift({
+      id: "usr_admin_default",
+      name: "Slots Administrator",
+      email: "shahrangujjar00@gmail.com",
+      phone: "+923001234567",
+      passwordHash: hashPassword("Admin@Slots2026"),
+      role: "ADMIN",
+      status: "ACTIVE",
+      emailVerified: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
+  return seed;
+}
+
+function mapProductRow(r: any): Product {
   return {
-    users: [
-      {
-        id: "usr_admin_default",
-        name: "Slots Administrator",
-        email: "shahrangujjar00@gmail.com",
-        phone: "+923001234567",
-        passwordHash: hashPassword("Admin@Slots2026"),
-        role: "ADMIN",
-        status: "ACTIVE",
-        emailVerified: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ],
-    customerProfiles: [],
-    categories: [],
-    products: [],
-    orders: [],
-    orderItems: [],
-    inquiries: [],
-    auditLogs: [],
-    verificationTokens: [],
-    passwordResetTokens: [],
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    categoryId: r.category_id || r.categoryId,
+    subcategoryId: r.subcategory_id || r.subcategoryId || undefined,
+    description: r.description || "",
+    image: r.image,
+    gallery: typeof r.gallery === "string" ? JSON.parse(r.gallery || "[]") : (r.gallery || []),
+    specifications: typeof r.specifications === "string" ? JSON.parse(r.specifications || "{}") : (r.specifications || {}),
+    minOrderQuantity: typeof r.min_order_quantity === "string" ? JSON.parse(r.min_order_quantity) : (r.min_order_quantity || r.minOrderQuantity || undefined),
+    leadTime: r.lead_time || r.leadTime || undefined,
+    featured: Boolean(r.featured),
+    published: r.published !== false,
+    sortOrder: Number(r.sort_order ?? r.sortOrder ?? 0),
+    createdAt: r.created_at || r.createdAt,
+    updatedAt: r.updated_at || r.updatedAt,
+  };
+}
+
+function mapCategoryRow(r: any): Category {
+  return {
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    parentId: r.parent_id || r.parentId || null,
+    description: r.description || undefined,
+    image: r.image || undefined,
+    sortOrder: Number(r.sort_order ?? r.sortOrder ?? 0),
+    published: r.published !== false,
+    createdAt: r.created_at || r.createdAt,
+    updatedAt: r.updated_at || r.updatedAt,
   };
 }
 
@@ -556,12 +585,60 @@ class DatabaseService {
     return filtered.sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
+  public async getCategoriesAsync(publishedOnly = true): Promise<Category[]> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const sql = publishedOnly
+          ? "SELECT * FROM categories WHERE published = TRUE ORDER BY sort_order ASC, name ASC"
+          : "SELECT * FROM categories ORDER BY sort_order ASC, name ASC";
+        const res = await pool.query(sql);
+        if (res.rows && res.rows.length > 0) {
+          return res.rows.map(mapCategoryRow);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getCategoriesAsync error:", err);
+      }
+    }
+    return this.getCategories(publishedOnly);
+  }
+
   public getCategoryById(id: string): Category | undefined {
     return this.ensureInitialized().categories.find((c) => c.id === id);
   }
 
+  public async getCategoryByIdAsync(id: string): Promise<Category | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM categories WHERE id = $1 LIMIT 1", [id]);
+        if (res.rows && res.rows.length > 0) {
+          return mapCategoryRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getCategoryByIdAsync error:", err);
+      }
+    }
+    return this.getCategoryById(id);
+  }
+
   public getCategoryBySlug(slug: string): Category | undefined {
     return this.ensureInitialized().categories.find((c) => c.slug === slug);
+  }
+
+  public async getCategoryBySlugAsync(slug: string): Promise<Category | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM categories WHERE slug = $1 LIMIT 1", [slug]);
+        if (res.rows && res.rows.length > 0) {
+          return mapCategoryRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getCategoryBySlugAsync error:", err);
+      }
+    }
+    return this.getCategoryBySlug(slug);
   }
 
   public createCategory(cat: Omit<Category, "id" | "createdAt" | "updatedAt">): Category {
@@ -714,12 +791,137 @@ class DatabaseService {
     };
   }
 
+  public async getProductsAsync(options?: {
+    categoryId?: string;
+    subcategoryId?: string;
+    categorySlug?: string;
+    search?: string;
+    featured?: boolean;
+    publishedOnly?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const conditions: string[] = [];
+        const params: any[] = [];
+        let pIndex = 1;
+
+        if (options?.publishedOnly !== false) {
+          conditions.push(`p.published = TRUE`);
+        }
+
+        if (options?.categorySlug) {
+          conditions.push(`c.slug = $${pIndex}`);
+          params.push(options.categorySlug);
+          pIndex++;
+        }
+
+        if (options?.categoryId) {
+          conditions.push(`p.category_id = $${pIndex}`);
+          params.push(options.categoryId);
+          pIndex++;
+        }
+
+        if (options?.subcategoryId) {
+          conditions.push(`p.subcategory_id = $${pIndex}`);
+          params.push(options.subcategoryId);
+          pIndex++;
+        }
+
+        if (options?.featured !== undefined) {
+          conditions.push(`p.featured = $${pIndex}`);
+          params.push(options.featured);
+          pIndex++;
+        }
+
+        if (options?.search) {
+          conditions.push(`(LOWER(p.name) LIKE $${pIndex} OR LOWER(p.description) LIKE $${pIndex})`);
+          params.push(`%${options.search.toLowerCase()}%`);
+          pIndex++;
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+        // Count total
+        const countSql = `
+          SELECT COUNT(*) as count
+          FROM products p
+          LEFT JOIN categories c ON p.category_id = c.id
+          ${whereClause}
+        `;
+        const countRes = await pool.query(countSql, params);
+        const total = parseInt(countRes.rows[0]?.count || "0", 10);
+
+        const page = options?.page || 1;
+        const limit = options?.limit || (options?.page ? 20 : 1000);
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const offset = (page - 1) * limit;
+
+        const dataSql = `
+          SELECT p.*
+          FROM products p
+          LEFT JOIN categories c ON p.category_id = c.id
+          ${whereClause}
+          ORDER BY p.sort_order ASC, p.created_at DESC
+          LIMIT $${pIndex} OFFSET $${pIndex + 1}
+        `;
+        const dataParams = [...params, limit, offset];
+        const dataRes = await pool.query(dataSql, dataParams);
+        const products = dataRes.rows.map(mapProductRow);
+
+        if (products.length > 0 || total > 0) {
+          return {
+            products,
+            total,
+            page,
+            totalPages,
+          };
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getProductsAsync error:", err);
+      }
+    }
+    return this.getProducts(options);
+  }
+
   public getProductById(id: string): Product | undefined {
     return this.ensureInitialized().products.find((p) => p.id === id);
   }
 
+  public async getProductByIdAsync(id: string): Promise<Product | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM products WHERE id = $1 LIMIT 1", [id]);
+        if (res.rows && res.rows.length > 0) {
+          return mapProductRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getProductByIdAsync error:", err);
+      }
+    }
+    return this.getProductById(id);
+  }
+
   public getProductBySlug(slug: string): Product | undefined {
     return this.ensureInitialized().products.find((p) => p.slug === slug);
+  }
+
+  public async getProductBySlugAsync(slug: string): Promise<Product | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM products WHERE slug = $1 LIMIT 1", [slug]);
+        if (res.rows && res.rows.length > 0) {
+          return mapProductRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getProductBySlugAsync error:", err);
+      }
+    }
+    return this.getProductBySlug(slug);
   }
 
   public createProduct(prod: Omit<Product, "id" | "createdAt" | "updatedAt">): Product {
@@ -1062,6 +1264,15 @@ export const createInquiry = (inq: any) => db.createInquiry(inq);
 export const getInquiries = () => db.getInquiries();
 export const getProducts = (options?: Parameters<DatabaseService["getProducts"]>[0]) =>
   db.getProducts(options);
+export const getProductsAsync = (options?: Parameters<DatabaseService["getProductsAsync"]>[0]) =>
+  db.getProductsAsync(options);
 export const getCategories = (publishedOnly?: boolean) => db.getCategories(publishedOnly);
+export const getCategoriesAsync = (publishedOnly?: boolean) => db.getCategoriesAsync(publishedOnly);
 export const getCategoryBySlug = (slug: string) => db.getCategoryBySlug(slug);
+export const getCategoryBySlugAsync = (slug: string) => db.getCategoryBySlugAsync(slug);
+export const getCategoryById = (id: string) => db.getCategoryById(id);
+export const getCategoryByIdAsync = (id: string) => db.getCategoryByIdAsync(id);
 export const getProductBySlug = (slug: string) => db.getProductBySlug(slug);
+export const getProductBySlugAsync = (slug: string) => db.getProductBySlugAsync(slug);
+export const getProductById = (id: string) => db.getProductById(id);
+export const getProductByIdAsync = (id: string) => db.getProductByIdAsync(id);

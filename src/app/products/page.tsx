@@ -58,10 +58,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const page = parseInt(params.page || "1", 10);
   const limit = 20;
 
-  const categories = db.getCategories(true);
-  const totalAllProducts = db.getProducts({ publishedOnly: true }).total;
+  const categories = await db.getCategoriesAsync(true);
+  const totalAllProducts = (await db.getProductsAsync({ publishedOnly: true })).total;
 
-  const { products, total, page: currentPage, totalPages } = db.getProducts({
+  const { products, total, page: currentPage, totalPages } = await db.getProductsAsync({
     categorySlug,
     subcategoryId,
     search,
@@ -70,7 +70,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     publishedOnly: true,
   });
 
-  const currentCategory = categorySlug ? db.getCategoryBySlug(categorySlug) : null;
+  const currentCategory = categorySlug ? await db.getCategoryBySlugAsync(categorySlug) : null;
   const pageTitle = currentCategory ? currentCategory.name : "ALL SPORTSWEAR PRODUCTS";
   const pageDescription = currentCategory?.description ||
     "Explore our verified manufacturing capabilities across performance golfwear, activewear, team kits, and athletic accessories.";

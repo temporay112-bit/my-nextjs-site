@@ -14,7 +14,7 @@ interface ProductDetailPageProps {
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = db.getProductBySlug(slug);
+  const product = await db.getProductBySlugAsync(slug);
 
   if (!product) {
     return {
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
     };
   }
 
-  const category = db.getCategoryById(product.categoryId);
+  const category = await db.getCategoryByIdAsync(product.categoryId);
 
   return {
     title: `${product.name} | SLOTS SPORTSWEAR B2B Custom Apparel`,
@@ -53,18 +53,16 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { slug } = await params;
-  const product = db.getProductBySlug(slug);
+  const product = await db.getProductBySlugAsync(slug);
 
   if (!product) {
     notFound();
   }
 
-  const category = db.getCategoryById(product.categoryId);
-  const subcategory = product.subcategoryId ? db.getCategoryById(product.subcategoryId) : null;
-  const relatedProducts = db
-    .getProducts({ categorySlug: category?.slug, limit: 4, publishedOnly: true })
-    .products.filter((p) => p.id !== product.id)
-    .slice(0, 3);
+  const category = await db.getCategoryByIdAsync(product.categoryId);
+  const subcategory = product.subcategoryId ? await db.getCategoryByIdAsync(product.subcategoryId) : null;
+  const relatedResult = await db.getProductsAsync({ categorySlug: category?.slug, limit: 4, publishedOnly: true });
+  const relatedProducts = relatedResult.products.filter((p) => p.id !== product.id).slice(0, 3);
 
   // Schema.org Product Structured Data
   const productSchema = {

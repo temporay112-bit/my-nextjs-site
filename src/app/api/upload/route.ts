@@ -1,19 +1,106 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextRequest, NextResponse } from "next/server";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "@/lib/validations";
+import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { ALLOWED_MIME_TYPES, ALLOWED_FILE_EXTENSIONS, MAX_FILE_SIZE_BYTES } from "@/lib/validations";
+import path from "path";
+import fs from "fs";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+  const contentType = request.headers.get("content-type") || "";
 
+  // 1. Multipart Form Data Direct Upload (Standard and most resilient)
+  if (contentType.includes("multipart/form-data")) {
+    try {
+      const formData = await request.formData();
+      const file = formData.get("file") as File | null;
+
+      if (!file) {
+        return NextResponse.json({ error: "No file provided for upload." }, { status: 400 });
+      }
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        return NextResponse.json(
+          { error: "File size exceeds the 25MB maximum limit." },
+          { status: 400 }
+        );
+      }
+
+      const originalExt = path.extname(file.name).toLowerCase();
+      const isValidExt = ALLOWED_FILE_EXTENSIONS.includes(originalExt as any);
+      const isValidMime =
+        ALLOWED_MIME_TYPES.includes(file.type as any) || file.type === "application/octet-stream";
+
+      if (!isValidExt && !isValidMime) {
+        return NextResponse.json(
+          {
+            error: "This file type is not supported. Please upload a PDF, AI, PSD, PNG, JPG, or ZIP.",
+          },
+          { status: 400 }
+        );
+      }
+
+      const safeExt = originalExt || ".pdf";
+      const safeFilename = `techpacks/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${safeExt}`;
+
+      // If Vercel Blob token is available (Production)
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        try {
+          const blob = await put(safeFilename, file, {
+            access: "public",
+            addRandomSuffix: false,
+          });
+
+          return NextResponse.json({
+            success: true,
+            url: blob.url,
+            pathname: blob.pathname,
+            filename: file.name,
+            size: file.size,
+          });
+        } catch (blobErr: any) {
+          console.warn("[Vercel Blob Upload Warning]:", blobErr.message);
+        }
+      }
+
+      // Local storage fallback for dev/offline environments
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "techpacks");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${safeExt}`;
+      const localFilePath = path.join(uploadDir, localFileName);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      fs.writeFileSync(localFilePath, buffer);
+
+      const publicUrl = `/uploads/techpacks/${localFileName}`;
+
+      return NextResponse.json({
+        success: true,
+        url: publicUrl,
+        pathname: publicUrl,
+        filename: file.name,
+        size: file.size,
+      });
+    } catch (err: any) {
+      console.error("[Upload API Error]:", err);
+      return NextResponse.json(
+        { error: err.message || "File upload failed. Please try again." },
+        { status: 500 }
+      );
+    }
+  }
+
+  // 2. Client-Side @vercel/blob/client handleUpload handler
   try {
+    const body = (await request.json()) as HandleUploadBody;
     const jsonResponse = await handleUpload({
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        // Enforce private/secure token generation with restricted content types & size
         return {
           allowedContentTypes: ALLOWED_MIME_TYPES,
-          maximumSizeInBytes: MAX_FILE_SIZE_BYTES, // 25 MB
+          maximumSizeInBytes: MAX_FILE_SIZE_BYTES,
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
             uploadedAt: new Date().toISOString(),
@@ -22,7 +109,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // Safe logging of upload completion metadata without private tokens
         try {
           console.log("[Blob Upload Completed]:", {
             pathname: blob.pathname,

@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 export async function GET() {
   try {
     await requireAdmin();
-    const categories = db.getCategories(false);
+    const categories = await db.getCategoriesAsync(false);
     return NextResponse.json({ categories });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Unauthorized" }, { status: 401 });
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category name and slug are required." }, { status: 400 });
     }
 
-    const existing = db.getCategoryBySlug(slug);
+    const existing = await db.getCategoryBySlugAsync(slug);
     if (existing) {
       return NextResponse.json({ error: "A category with this slug already exists." }, { status: 409 });
     }

@@ -49,31 +49,71 @@ export function FileUpload({ onFileUploaded, disabled = false, className }: File
       trackEvent("upload_start", { file_type: ext, file_size_category: sizeCat });
 
       try {
-        // Direct Client Upload to Vercel Blob via @vercel/blob/client (Private for Tech Pack protection)
-        const newBlob = await upload(`techpacks/${file.name}`, file, {
-          access: "private",
-          handleUploadUrl: "/api/upload",
-          onUploadProgress: (progressEvent) => {
-            setUploadProgress(Math.round(progressEvent.percentage));
-          },
-        });
+        const formData = new FormData();
+        formData.append("file", file);
 
-        // Store secure pathname or private reference
-        const fileRef = newBlob.pathname || newBlob.url;
+        const xhr = new XMLHttpRequest();
+
+        const uploadPromise = new Promise<{ url: string; pathname?: string; filename?: string }>(
+          (resolve, reject) => {
+            xhr.upload.addEventListener("progress", (event) => {
+              if (event.lengthComputable) {
+                const percent = Math.min(95, Math.round((event.loaded / event.total) * 90) + 5);
+                setUploadProgress(percent);
+              }
+            });
+
+            xhr.addEventListener("load", () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  if (response.url || response.pathname) {
+                    resolve(response);
+                  } else {
+                    reject(new Error(response.error || "Upload failed."));
+                  }
+                } catch {
+                  reject(new Error("Invalid upload server response."));
+                }
+              } else {
+                try {
+                  const errRes = JSON.parse(xhr.responseText);
+                  reject(new Error(errRes.error || "File upload failed."));
+                } catch {
+                  reject(new Error("File upload failed. Please try again."));
+                }
+              }
+            });
+
+            xhr.addEventListener("error", () => {
+              reject(new Error("Network error during file upload."));
+            });
+
+            xhr.addEventListener("abort", () => {
+              reject(new Error("File upload was cancelled."));
+            });
+
+            xhr.open("POST", "/api/upload");
+            xhr.send(formData);
+          }
+        );
+
+        const result = await uploadPromise;
+        const fileRef = result.url || result.pathname || "";
         setFileReference(fileRef);
         setUploadProgress(100);
         setUploadStatus("success");
         onFileUploaded(fileRef, file.name);
         trackEvent("upload_success", { status: "success", file_type: ext });
       } catch (err: unknown) {
-        console.error("[Vercel Blob Client Upload Error]:", err);
+        console.error("[Tech Pack Upload Error]:", err);
         const msg =
           err instanceof Error
             ? err.message.includes("larger")
               ? "This file is larger than the allowed limit."
               : err.message.includes("type")
               ? "This file type is not supported."
-              : "File upload failed. Please try again."
+              : err.message
             : "File upload failed. Please try again.";
 
         setUploadStatus("error");

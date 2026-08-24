@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
 
-    const result = db.getProducts({
+    const result = await db.getProductsAsync({
       categorySlug,
       search,
       page,
