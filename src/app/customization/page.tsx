@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Custom Sportswear & Private Label | SLOTS SPORTSWEAR",
     description:
       "Full-service B2B custom sportswear and private-label apparel manufacturing: custom silhouettes, 3D embroidery, silicone heat transfers, woven labels, and retail packaging.",
-    url: "https://slotssportswear.com/customization",
+    url: "https://slotsdesign.vercel.app/customization",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -46,7 +46,7 @@ export default function CustomizationPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Custom Sportswear & Private Label | SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com/customization",
+    url: "https://slotsdesign.vercel.app/customization",
     description:
       "Comprehensive apparel customization options including custom product design, fabric selection, colors, fit specifications, 3D embroidery, printing, custom labels, hang tags, and private-label packaging.",
     publisher: {

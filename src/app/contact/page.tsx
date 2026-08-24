@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     title: "Contact SLOTS SPORTSWEAR | Get a Quote",
     description:
       "Connect directly with our Sialkot sportswear manufacturing facility. Submit your technical specifications or request a bulk production quotation.",
-    url: "https://slotssportswear.com/contact",
+    url: "https://slotsdesign.vercel.app/contact",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -42,7 +42,7 @@ export default function ContactPage() {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: "Contact SLOTS SPORTSWEAR | Get a Quote",
-    url: "https://slotssportswear.com/contact",
+    url: "https://slotsdesign.vercel.app/contact",
     description:
       "Contact page for SLOTS SPORTSWEAR custom apparel manufacturing inquiries and quote requests.",
     publisher: {

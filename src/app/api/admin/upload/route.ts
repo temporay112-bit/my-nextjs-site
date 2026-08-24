@@ -35,43 +35,19 @@ export async function POST(request: NextRequest) {
     const ext = path.extname(file.name) || ".png";
     const safeFilename = `products/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
-    // If Vercel Blob token exists, use Vercel Blob
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const blob = await put(safeFilename, file, {
-          access: "public",
-          addRandomSuffix: false,
-        });
-
-        return NextResponse.json({
-          success: true,
-          url: blob.url,
-          filename: safeFilename,
-        });
-      } catch (blobErr: any) {
-        console.warn("Vercel Blob upload fallback to local storage:", blobErr.message);
-      }
-    }
-
-    // Fallback: save to public/images/products/uploads/
-    const uploadDir = path.join(process.cwd(), "public", "images", "products", "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-    const localFilePath = path.join(uploadDir, localFileName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(localFilePath, buffer);
-
-    const publicUrl = `/images/products/uploads/${localFileName}`;
+    const blob = await put(safeFilename, file, {
+      access: "public",
+      addRandomSuffix: false,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: localFileName,
+      url: blob.url,
+      filename: safeFilename,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Upload failed." }, { status: 401 });
+    console.error("[Admin Upload Error]:", err);
+    return NextResponse.json({ error: err.message || "Upload failed." }, { status: 500 });
   }
 }

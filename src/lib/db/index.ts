@@ -114,6 +114,49 @@ function mapCategoryRow(r: any): Category {
   };
 }
 
+function mapUserRow(r: any): User {
+  return {
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    phone: r.phone || undefined,
+    passwordHash: r.password_hash || r.passwordHash,
+    role: (r.role || "CUSTOMER") as UserRole,
+    status: (r.status || "ACTIVE") as UserStatus,
+    emailVerified: Boolean(r.email_verified ?? r.emailVerified),
+    resetToken: r.reset_token || r.resetToken || undefined,
+    resetTokenExpiresAt: r.reset_token_expires_at || r.resetTokenExpiresAt || undefined,
+    createdAt: r.created_at ? new Date(r.created_at).toISOString() : r.createdAt,
+    updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : r.updatedAt,
+    lastLoginAt: r.last_login_at ? new Date(r.last_login_at).toISOString() : r.lastLoginAt || undefined,
+  };
+}
+
+function mapVerificationTokenRow(r: any): VerificationToken {
+  return {
+    id: r.id,
+    userId: r.user_id || r.userId,
+    identifier: r.identifier || r.user_id || r.userId,
+    tokenHash: r.token_hash || r.tokenHash,
+    token: r.token || r.token_hash || r.tokenHash,
+    expiresAt: r.expires_at ? new Date(r.expires_at).toISOString() : r.expiresAt,
+    expires: r.expires ? new Date(r.expires).toISOString() : r.expiresAt,
+    usedAt: r.used_at ? new Date(r.used_at).toISOString() : r.usedAt || null,
+    createdAt: r.created_at ? new Date(r.created_at).toISOString() : r.createdAt,
+  };
+}
+
+function mapPasswordResetTokenRow(r: any): PasswordResetToken {
+  return {
+    id: r.id,
+    userId: r.user_id || r.userId,
+    tokenHash: r.token_hash || r.tokenHash,
+    expiresAt: r.expires_at ? new Date(r.expires_at).toISOString() : r.expiresAt,
+    usedAt: r.used_at ? new Date(r.used_at).toISOString() : r.usedAt || null,
+    createdAt: r.created_at ? new Date(r.created_at).toISOString() : r.createdAt,
+  };
+}
+
 /**
  * Universal Database Service with seamless dual-engine support:
  * 1. Persistent Managed PostgreSQL when DATABASE_URL is configured (Production).
@@ -220,13 +263,48 @@ class DatabaseService {
     return this.getUsers().find((u) => u.id === id);
   }
 
+  public async findUserByIdAsync(id: string): Promise<User | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM users WHERE id = $1 LIMIT 1", [id]);
+        if (res.rows && res.rows.length > 0) {
+          return mapUserRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] findUserByIdAsync error:", err);
+      }
+    }
+    return this.findUserById(id);
+  }
+
   public getUserById(id: string): User | undefined {
     return this.findUserById(id);
+  }
+
+  public async getUserByIdAsync(id: string): Promise<User | undefined> {
+    return this.findUserByIdAsync(id);
   }
 
   public findUserByEmail(email: string): User | undefined {
     const clean = email.trim().toLowerCase();
     return this.getUsers().find((u) => u.email && u.email.toLowerCase() === clean);
+  }
+
+  public async findUserByEmailAsync(email: string): Promise<User | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const clean = email.trim().toLowerCase();
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1", [clean]);
+        if (res.rows && res.rows.length > 0) {
+          return mapUserRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] findUserByEmailAsync error:", err);
+      }
+    }
+    return this.findUserByEmail(email);
   }
 
   public getUserByEmailOrPhone(identifier: string): User | undefined {
@@ -237,6 +315,26 @@ class DatabaseService {
         (u.email && u.email.toLowerCase() === clean) ||
         (u.phone && u.phone.replace(/\s+/g, "") === cleanPhone)
     );
+  }
+
+  public async getUserByEmailOrPhoneAsync(identifier: string): Promise<User | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const clean = identifier.trim().toLowerCase();
+        const cleanPhone = identifier.replace(/\s+/g, "");
+        const pool = getPostgresPool();
+        const res = await pool.query(
+          "SELECT * FROM users WHERE LOWER(email) = $1 OR (phone IS NOT NULL AND REPLACE(phone, ' ', '') = $2) LIMIT 1",
+          [clean, cleanPhone]
+        );
+        if (res.rows && res.rows.length > 0) {
+          return mapUserRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getUserByEmailOrPhoneAsync error:", err);
+      }
+    }
+    return this.getUserByEmailOrPhone(identifier);
   }
 
   public getUserByResetToken(token: string): User | undefined {
@@ -336,6 +434,62 @@ class DatabaseService {
     }
 
     return db.users[index];
+  }
+
+  public async updateUserAsync(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const db = this.ensureInitialized();
+    const index = db.users.findIndex((u) => u.id === id);
+    const now = new Date().toISOString();
+    if (index !== -1) {
+      db.users[index] = {
+        ...db.users[index],
+        ...updates,
+        updatedAt: now,
+      };
+      this.save();
+    }
+
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const user = await this.findUserByIdAsync(id);
+        if (user) {
+          const merged: User = { ...user, ...updates, updatedAt: now };
+          await pool.query(
+            `UPDATE users SET
+               name = $1,
+               phone = $2,
+               password_hash = $3,
+               role = $4,
+               status = $5,
+               email_verified = $6,
+               reset_token = $7,
+               reset_token_expires_at = $8,
+               updated_at = $9,
+               last_login_at = $10
+             WHERE id = $11`,
+            [
+              merged.name,
+              merged.phone || null,
+              merged.passwordHash,
+              merged.role,
+              merged.status,
+              merged.emailVerified,
+              merged.resetToken || null,
+              merged.resetTokenExpiresAt || null,
+              merged.updatedAt,
+              merged.lastLoginAt || null,
+              id,
+            ]
+          );
+          return merged;
+        }
+      } catch (err) {
+        console.error("[DatabaseService] updateUserAsync error:", err);
+      }
+    }
+
+    return index !== -1 ? db.users[index] : undefined;
   }
 
   public setResetToken(userId: string, token: string, expiresAt: string): boolean {
@@ -484,10 +638,70 @@ class DatabaseService {
     return newToken;
   }
 
+  public async createVerificationTokenAsync(
+    userIdOrIdentifier: string,
+    tokenHash: string,
+    expiresAt: string
+  ): Promise<VerificationToken> {
+    const now = new Date().toISOString();
+    const newToken: VerificationToken = {
+      id: `vtok_${Date.now()}_${randomBytes(4).toString("hex")}`,
+      userId: userIdOrIdentifier,
+      identifier: userIdOrIdentifier,
+      tokenHash,
+      token: tokenHash,
+      expiresAt,
+      expires: expiresAt,
+      usedAt: null,
+      createdAt: now,
+    };
+
+    const db = this.ensureInitialized(true);
+    if (!db.verificationTokens) db.verificationTokens = [];
+    db.verificationTokens = db.verificationTokens.filter(
+      (t) => (t.userId !== userIdOrIdentifier && t.identifier !== userIdOrIdentifier) || t.usedAt !== null
+    );
+    db.verificationTokens.push(newToken);
+    this.save();
+
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        await pool.query(
+          `INSERT INTO verification_tokens (id, user_id, token_hash, expires_at, used_at, created_at)
+           VALUES ($1, $2, $3, $4, NULL, $5)`,
+          [newToken.id, newToken.userId, newToken.tokenHash, newToken.expiresAt, newToken.createdAt]
+        );
+      } catch (err) {
+        console.error("[DatabaseService] createVerificationTokenAsync error:", err);
+      }
+    }
+
+    return newToken;
+  }
+
   public findVerificationTokenByHash(tokenHash: string): VerificationToken | undefined {
     const db = this.ensureInitialized(true);
     if (!db.verificationTokens) return undefined;
     return db.verificationTokens.find((t) => t.tokenHash === tokenHash || (t as any).token === tokenHash);
+  }
+
+  public async findVerificationTokenByHashAsync(tokenHash: string): Promise<VerificationToken | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query(
+          "SELECT * FROM verification_tokens WHERE token_hash = $1 ORDER BY created_at DESC LIMIT 1",
+          [tokenHash]
+        );
+        if (res.rows && res.rows.length > 0) {
+          return mapVerificationTokenRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] findVerificationTokenByHashAsync error:", err);
+      }
+    }
+    return this.findVerificationTokenByHash(tokenHash);
   }
 
   public markVerificationTokenUsed(tokenHash: string): boolean {
@@ -506,6 +720,25 @@ class DatabaseService {
       ).catch(() => {});
     }
 
+    return true;
+  }
+
+  public async markVerificationTokenUsedAsync(tokenHash: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    this.markVerificationTokenUsed(tokenHash);
+
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        await pool.query(
+          "UPDATE verification_tokens SET used_at = $1 WHERE token_hash = $2 OR id = $2",
+          [now, tokenHash]
+        );
+        return true;
+      } catch (err) {
+        console.error("[DatabaseService] markVerificationTokenUsedAsync error:", err);
+      }
+    }
     return true;
   }
 
@@ -553,10 +786,65 @@ class DatabaseService {
     return newToken;
   }
 
+  public async createPasswordResetTokenAsync(
+    userId: string,
+    tokenHash: string,
+    expiresAt: string
+  ): Promise<PasswordResetToken> {
+    const now = new Date().toISOString();
+    const newToken: PasswordResetToken = {
+      id: `prtok_${Date.now()}_${randomBytes(4).toString("hex")}`,
+      userId,
+      tokenHash,
+      expiresAt,
+      usedAt: null,
+      createdAt: now,
+    };
+
+    const db = this.ensureInitialized(true);
+    if (!db.passwordResetTokens) db.passwordResetTokens = [];
+    db.passwordResetTokens = db.passwordResetTokens.filter((t) => t.userId !== userId || t.usedAt !== null);
+    db.passwordResetTokens.push(newToken);
+    this.save();
+
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        await pool.query(
+          `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, used_at, created_at)
+           VALUES ($1, $2, $3, $4, NULL, $5)`,
+          [newToken.id, newToken.userId, newToken.tokenHash, newToken.expiresAt, newToken.createdAt]
+        );
+      } catch (err) {
+        console.error("[DatabaseService] createPasswordResetTokenAsync error:", err);
+      }
+    }
+
+    return newToken;
+  }
+
   public findPasswordResetTokenByHash(tokenHash: string): PasswordResetToken | undefined {
     const db = this.ensureInitialized(true);
     if (!db.passwordResetTokens) return undefined;
     return db.passwordResetTokens.find((t) => t.tokenHash === tokenHash || (t as any).token === tokenHash);
+  }
+
+  public async findPasswordResetTokenByHashAsync(tokenHash: string): Promise<PasswordResetToken | undefined> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query(
+          "SELECT * FROM password_reset_tokens WHERE token_hash = $1 ORDER BY created_at DESC LIMIT 1",
+          [tokenHash]
+        );
+        if (res.rows && res.rows.length > 0) {
+          return mapPasswordResetTokenRow(res.rows[0]);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] findPasswordResetTokenByHashAsync error:", err);
+      }
+    }
+    return this.findPasswordResetTokenByHash(tokenHash);
   }
 
   public markPasswordResetTokenUsed(id: string): boolean {
@@ -575,6 +863,25 @@ class DatabaseService {
       ).catch(() => {});
     }
 
+    return true;
+  }
+
+  public async markPasswordResetTokenUsedAsync(id: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    this.markPasswordResetTokenUsed(id);
+
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        await pool.query(
+          "UPDATE password_reset_tokens SET used_at = $1 WHERE id = $2 OR token_hash = $2",
+          [now, id]
+        );
+        return true;
+      } catch (err) {
+        console.error("[DatabaseService] markPasswordResetTokenUsedAsync error:", err);
+      }
+    }
     return true;
   }
 
@@ -1245,17 +1552,30 @@ export const db = new DatabaseService();
 
 // Top-level exported database helper functions
 export const findUserById = (id: string) => db.findUserById(id);
+export const findUserByIdAsync = (id: string) => db.findUserByIdAsync(id);
 export const findUserByEmail = (email: string) => db.findUserByEmail(email);
+export const findUserByEmailAsync = (email: string) => db.findUserByEmailAsync(email);
+export const getUserByEmailOrPhone = (identifier: string) => db.getUserByEmailOrPhone(identifier);
+export const getUserByEmailOrPhoneAsync = (identifier: string) => db.getUserByEmailOrPhoneAsync(identifier);
 export const createUser = (user: Omit<User, "id" | "createdAt" | "updatedAt">) => db.createUser(user);
 export const updateUser = (id: string, updates: Partial<User>) => db.updateUser(id, updates);
+export const updateUserAsync = (id: string, updates: Partial<User>) => db.updateUserAsync(id, updates);
 export const createVerificationToken = (userId: string, tokenHash: string, expiresAt: string) =>
   db.createVerificationToken(userId, tokenHash, expiresAt);
+export const createVerificationTokenAsync = (userId: string, tokenHash: string, expiresAt: string) =>
+  db.createVerificationTokenAsync(userId, tokenHash, expiresAt);
 export const findVerificationTokenByHash = (tokenHash: string) => db.findVerificationTokenByHash(tokenHash);
+export const findVerificationTokenByHashAsync = (tokenHash: string) => db.findVerificationTokenByHashAsync(tokenHash);
 export const markVerificationTokenUsed = (id: string) => db.markVerificationTokenUsed(id);
+export const markVerificationTokenUsedAsync = (id: string) => db.markVerificationTokenUsedAsync(id);
 export const createPasswordResetToken = (userId: string, tokenHash: string, expiresAt: string) =>
   db.createPasswordResetToken(userId, tokenHash, expiresAt);
+export const createPasswordResetTokenAsync = (userId: string, tokenHash: string, expiresAt: string) =>
+  db.createPasswordResetTokenAsync(userId, tokenHash, expiresAt);
 export const findPasswordResetTokenByHash = (tokenHash: string) => db.findPasswordResetTokenByHash(tokenHash);
+export const findPasswordResetTokenByHashAsync = (tokenHash: string) => db.findPasswordResetTokenByHashAsync(tokenHash);
 export const markPasswordResetTokenUsed = (id: string) => db.markPasswordResetTokenUsed(id);
+export const markPasswordResetTokenUsedAsync = (id: string) => db.markPasswordResetTokenUsedAsync(id);
 export const findCustomerProfileByUserId = (userId: string) => db.findCustomerProfileByUserId(userId);
 export const findOrdersByCustomerId = (customerId: string) => db.findOrdersByCustomerId(customerId);
 export const findInquiriesByCustomerId = (customerId: string) => db.findInquiriesByCustomerId(customerId);

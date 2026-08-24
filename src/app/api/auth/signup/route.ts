@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const existing = db.findUserByEmail(normalizedEmail);
+    const existing = await db.findUserByEmailAsync(normalizedEmail);
     if (existing) {
       return NextResponse.json(
         { error: "An account with this email address already exists. Please sign in." },

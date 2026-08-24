@@ -14,6 +14,7 @@
   "dependencies": {
     "@types/pg": "^8.23.1",
     "@vercel/blob": "^2.8.0",
+    "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "next": "^15.1.7",

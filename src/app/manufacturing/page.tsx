@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
     description:
       "From concept to production: Explore our authentic 10-step B2B sportswear manufacturing process, quality control standards, and Sialkot facility environment.",
-    url: "https://slotssportswear.com/manufacturing",
+    url: "https://slotsdesign.vercel.app/manufacturing",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -44,7 +44,7 @@ export default function ManufacturingPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com/manufacturing",
+    url: "https://slotsdesign.vercel.app/manufacturing",
     description:
       "Comprehensive 10-step sportswear manufacturing process engineered for international B2B clients from tech pack review to shipping.",
     publisher: {

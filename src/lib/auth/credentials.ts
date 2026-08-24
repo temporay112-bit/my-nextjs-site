@@ -72,3 +72,34 @@ export function authenticateUser(email: string, password: string): AuthResult {
     needsVerification: !user.emailVerified,
   };
 }
+
+export async function authenticateUserAsync(email: string, password: string): Promise<AuthResult> {
+  if (!email || !password) {
+    return { success: false, error: "Email and password are required." };
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const user = await db.findUserByEmailAsync(cleanEmail);
+
+  if (!user) {
+    return { success: false, error: "Invalid credentials. Please check your email and password." };
+  }
+
+  if (user.status === "SUSPENDED") {
+    return {
+      success: false,
+      error: "Your account is currently suspended. Please contact customer support.",
+    };
+  }
+
+  const isValidPassword = verifyPassword(password, user.passwordHash);
+  if (!isValidPassword) {
+    return { success: false, error: "Invalid credentials. Please check your email and password." };
+  }
+
+  return {
+    success: true,
+    user: toSafeUser(user),
+    needsVerification: !user.emailVerified,
+  };
+}

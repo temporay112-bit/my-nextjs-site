@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { ALLOWED_MIME_TYPES, ALLOWED_FILE_EXTENSIONS, MAX_FILE_SIZE_BYTES } from "@/lib/validations";
+import { randomBytes } from "crypto";
 import path from "path";
-import fs from "fs";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const contentType = request.headers.get("content-type") || "";
 
-  // 1. Multipart Form Data Direct Upload (Standard and most resilient)
+  // 1. Multipart Form Data Direct Upload (Standard and primary method)
   if (contentType.includes("multipart/form-data")) {
     try {
       const formData = await request.formData();
@@ -40,45 +40,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       const safeExt = originalExt || ".pdf";
-      const safeFilename = `techpacks/${Date.now()}-${Math.random().toString(36).substring(2, 8)}${safeExt}`;
+      const safeFilename = `techpacks/tp_${Date.now()}_${randomBytes(4).toString("hex")}${safeExt}`;
 
-      // If Vercel Blob token is available (Production)
-      if (process.env.BLOB_READ_WRITE_TOKEN) {
-        try {
-          const blob = await put(safeFilename, file, {
-            access: "public",
-            addRandomSuffix: false,
-          });
-
-          return NextResponse.json({
-            success: true,
-            url: blob.url,
-            pathname: blob.pathname,
-            filename: file.name,
-            size: file.size,
-          });
-        } catch (blobErr: any) {
-          console.warn("[Vercel Blob Upload Warning]:", blobErr.message);
-        }
-      }
-
-      // Local storage fallback for dev/offline environments
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "techpacks");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${safeExt}`;
-      const localFilePath = path.join(uploadDir, localFileName);
-      const buffer = Buffer.from(await file.arrayBuffer());
-      fs.writeFileSync(localFilePath, buffer);
-
-      const publicUrl = `/uploads/techpacks/${localFileName}`;
+      // Upload directly to Vercel Blob storage (Public CDN URL)
+      const blob = await put(safeFilename, file, {
+        access: "public",
+        addRandomSuffix: false,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
 
       return NextResponse.json({
         success: true,
-        url: publicUrl,
-        pathname: publicUrl,
+        url: blob.url,
+        pathname: blob.pathname,
         filename: file.name,
         size: file.size,
       });

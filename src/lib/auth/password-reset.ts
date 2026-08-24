@@ -19,7 +19,7 @@ export async function requestPasswordReset(
   requestContext?: any
 ): Promise<{ success: boolean; message: string }> {
   const normalizedEmail = email.toLowerCase().trim();
-  const user = db.findUserByEmail(normalizedEmail);
+  const user = await db.findUserByEmailAsync(normalizedEmail);
 
   // Generic anti-enumeration response
   const genericSuccess = {
@@ -36,7 +36,7 @@ export async function requestPasswordReset(
   const expiresAt = new Date(Date.now() + oneHourMs).toISOString();
 
   // Persist only the token hash
-  db.createPasswordResetToken(user.id, tokenHash, expiresAt);
+  await db.createPasswordResetTokenAsync(user.id, tokenHash, expiresAt);
 
   // Dispatch Nodemailer transactional email with raw token
   try {
@@ -70,8 +70,8 @@ export async function completePasswordReset(
   const cleanToken = rawToken.trim();
   const tokenHash = crypto.createHash("sha256").update(cleanToken).digest("hex");
   const tokenRecord =
-    db.findPasswordResetTokenByHash(tokenHash) ||
-    db.findPasswordResetTokenByHash(cleanToken);
+    (await db.findPasswordResetTokenByHashAsync(tokenHash)) ||
+    (await db.findPasswordResetTokenByHashAsync(cleanToken));
 
   if (!tokenRecord) {
     return { success: false, error: "Invalid password reset link.", reason: "INVALID" };
@@ -95,7 +95,7 @@ export async function completePasswordReset(
     };
   }
 
-  const user = db.findUserById(tokenRecord.userId);
+  const user = await db.findUserByIdAsync(tokenRecord.userId);
   if (!user) {
     return { success: false, error: "Associated user account was not found.", reason: "USER_NOT_FOUND" };
   }
@@ -104,12 +104,12 @@ export async function completePasswordReset(
   const newPasswordHash = hashPassword(newPassword);
 
   // Update user in DB
-  db.updateUser(user.id, {
+  await db.updateUserAsync(user.id, {
     passwordHash: newPasswordHash,
   });
 
   // Mark token as used for replay protection
-  db.markPasswordResetTokenUsed(tokenRecord.id);
+  await db.markPasswordResetTokenUsedAsync(tokenRecord.id);
 
   db.logAction({
     userId: user.id,

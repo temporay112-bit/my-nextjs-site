@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const user = db.getUserByEmailOrPhone(normalizedEmail);
+    const user = await db.getUserByEmailOrPhoneAsync(normalizedEmail);
 
     if (!user) {
       return NextResponse.json(

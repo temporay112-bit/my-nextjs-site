@@ -47,7 +47,7 @@ export async function createAndSendVerificationToken(
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
 
   // Persist tokenHash in DB (invalidating any older unused tokens)
-  db.createVerificationToken(userId, tokenHash, expiresAt);
+  await db.createVerificationTokenAsync(userId, tokenHash, expiresAt);
 
   // Dispatch branded email via Nodemailer with raw token
   const emailRes = await sendVerificationEmail(email, name, rawToken, requestContext);
@@ -78,8 +78,8 @@ export async function verifyEmailToken(rawToken: string): Promise<VerificationRe
 
   // Look up token by tokenHash (or by raw token for backward compatibility)
   const tokenRecord =
-    db.findVerificationTokenByHash(tokenHash) ||
-    db.findVerificationTokenByHash(cleanToken);
+    (await db.findVerificationTokenByHashAsync(tokenHash)) ||
+    (await db.findVerificationTokenByHashAsync(cleanToken));
 
   if (!tokenRecord) {
     return {
@@ -110,8 +110,8 @@ export async function verifyEmailToken(rawToken: string): Promise<VerificationRe
 
   // Find user by userId or identifier
   const user =
-    db.findUserById(tokenRecord.userId || tokenRecord.identifier) ||
-    db.findUserByEmail(tokenRecord.identifier || "");
+    (await db.findUserByIdAsync(tokenRecord.userId || tokenRecord.identifier)) ||
+    (await db.findUserByEmailAsync(tokenRecord.identifier || ""));
 
   if (!user) {
     return {
@@ -130,12 +130,12 @@ export async function verifyEmailToken(rawToken: string): Promise<VerificationRe
   }
 
   // Mark token as used (single-use enforcement)
-  db.markVerificationTokenUsed(tokenRecord.id);
+  await db.markVerificationTokenUsedAsync(tokenRecord.id);
 
   // Update user emailVerified status
   let updatedUser = user;
   if (!user.emailVerified) {
-    const res = db.updateUser(user.id, { emailVerified: true });
+    const res = await db.updateUserAsync(user.id, { emailVerified: true });
     if (res) updatedUser = res;
 
     db.logAction({

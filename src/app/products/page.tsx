@@ -80,13 +80,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `SLOTS SPORTSWEAR — ${pageTitle}`,
-    url: "https://slotssportswear.com/products",
+    url: "https://slotsdesign.vercel.app/products",
     description: pageDescription,
     publisher: {
       "@type": "Organization",
       name: "SLOTS SPORTSWEAR",
-      url: "https://slotssportswear.com",
-      logo: "https://slotssportswear.com/images/logo.png",
+      url: "https://slotsdesign.vercel.app",
+      logo: "https://slotsdesign.vercel.app/images/logo.png",
     },
     mainEntity: {
       "@type": "ItemList",
@@ -95,7 +95,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         position: (currentPage - 1) * limit + index + 1,
         name: item.name,
         description: item.description,
-        image: `https://slotssportswear.com${item.image}`,
+        image: `https://slotsdesign.vercel.app${item.image}`,
       })),
     },
   };

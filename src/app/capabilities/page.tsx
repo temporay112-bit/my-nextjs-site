@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
     description:
       "Precision B2B sportswear manufacturing capabilities from tech pack review and sampling to high-capacity bulk production, private labeling, and worldwide export.",
-    url: "https://slotssportswear.com/capabilities",
+    url: "https://slotsdesign.vercel.app/capabilities",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -45,7 +45,7 @@ export default function CapabilitiesPage() {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com/capabilities",
+    url: "https://slotsdesign.vercel.app/capabilities",
     description:
       "Comprehensive B2B sportswear manufacturing capabilities including OEM production, ODM design adaptation, private labeling, 5-stage product development, and rigorous quality control.",
     publisher: {

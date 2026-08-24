@@ -10,7 +10,7 @@ export async function getCurrentUser(): Promise<SafeUser | null> {
   const session = await getSession();
   if (!session) return null;
 
-  const user = db.findUserById(session.userId);
+  const user = await db.findUserByIdAsync(session.userId);
   if (!user || user.status === "SUSPENDED") {
     return null;
   }

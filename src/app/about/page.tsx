@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: "About SLOTS SPORTSWEAR | Custom Sportswear Manufacturer",
     description:
       "Precision B2B custom sportswear and golfwear manufacturer based in Sialkot, Pakistan. Specializing in OEM, ODM, private label, and global export.",
-    url: "https://slotssportswear.com/about",
+    url: "https://slotsdesign.vercel.app/about",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -47,7 +47,7 @@ export default function AboutPage() {
     "@context": "https://schema.org",
     "@type": "AboutPage",
     name: "About SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com/about",
+    url: "https://slotsdesign.vercel.app/about",
     description:
       "SLOTS SPORTSWEAR is a premier B2B custom sportswear manufacturer and global exporter based in Sialkot, Pakistan.",
     publisher: {

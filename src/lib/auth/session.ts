@@ -44,7 +44,7 @@ export function verifyToken(token: string): SessionPayload | null {
  * Reads the authoritative role from the database.
  */
 export async function createSession(userId: string): Promise<{ token: string; payload: SessionPayload }> {
-  const user = db.findUserById(userId);
+  const user = await db.findUserByIdAsync(userId);
   if (!user) throw new Error("User not found");
 
   const expiresAt = Date.now() + SESSION_DURATION_MS;
@@ -69,7 +69,7 @@ export async function createSession(userId: string): Promise<{ token: string; pa
     expires: new Date(expiresAt),
   });
 
-  db.updateUser(userId, { lastLoginAt: new Date().toISOString() });
+  await db.updateUserAsync(userId, { lastLoginAt: new Date().toISOString() });
   return { token, payload };
 }
 

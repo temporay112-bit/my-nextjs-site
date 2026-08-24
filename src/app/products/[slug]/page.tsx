@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
       description:
         product.description ||
         `Custom manufacturing and wholesale specifications for ${product.name}.`,
-      url: `https://slotssportswear.com/products/${product.slug}`,
+      url: `https://slotsdesign.vercel.app/products/${product.slug}`,
       siteName: "SLOTS SPORTSWEAR",
       images: [
         {
@@ -69,7 +69,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: `https://slotssportswear.com${product.image}`,
+    image: `https://slotsdesign.vercel.app${product.image}`,
     description: product.description,
     brand: {
       "@type": "Brand",

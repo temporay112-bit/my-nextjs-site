@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Sora, Inter, Barlow_Condensed } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/styles/globals.css";
 
 const sora = Sora({
@@ -26,7 +27,7 @@ const barlow = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://slotssportswear.com"),
+  metadataBase: new URL("https://slotsdesign.vercel.app"),
   title: {
     default: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
     template: "%s | SLOTS SPORTSWEAR",
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
     title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
     description:
       "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, teamwear, private label, and bulk apparel production.",
-    url: "https://slotssportswear.com",
+    url: "https://slotsdesign.vercel.app",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -113,8 +114,8 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com",
-    logo: "https://slotssportswear.com/images/logo.png",
+    url: "https://slotsdesign.vercel.app",
+    logo: "https://slotsdesign.vercel.app/images/logo.png",
     description:
       "B2B custom sportswear manufacturer and exporter based in Sialkot, Pakistan, offering OEM, ODM, and Private Label apparel solutions.",
     address: {
@@ -135,7 +136,7 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "SLOTS SPORTSWEAR",
-    url: "https://slotssportswear.com",
+    url: "https://slotsdesign.vercel.app",
   };
 
   return (
@@ -161,6 +162,7 @@ export default function RootLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <SpeedInsights />
       </body>
     </html>
   );
