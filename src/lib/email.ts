@@ -10,9 +10,9 @@
 import { getTransporter, sendMail, verifySmtpConnection } from "./email/mailer";
 import type { EmailDeliveryResult } from "./email/mailer";
 import { InquiryInput } from "@/lib/validations";
-import { getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl } from "@/lib/url";
+import { getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl, buildSecureFileDownloadUrl } from "@/lib/url";
 
-export { getTransporter, verifySmtpConnection, getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl };
+export { getTransporter, verifySmtpConnection, getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl, buildSecureFileDownloadUrl };
 export type { EmailDeliveryResult };
 
 function getQuoteReceiver(): string {
@@ -44,21 +44,23 @@ export async function sendQuoteNotificationEmail(
   if (inquiry.fileReference) {
     const rawRef = inquiry.fileReference;
     const isUrl = rawRef.startsWith("http://") || rawRef.startsWith("https://");
-    const fileUrl = isUrl
-      ? rawRef
-      : `${getPublicOrigin()}${rawRef.startsWith("/") ? "" : "/"}${rawRef}`;
-    const filename = isUrl ? rawRef.split("/").pop() || "TechPack-Attachment" : rawRef;
+    const filename = isUrl
+      ? rawRef.split("/").pop()?.split("?")[0] || "TechPack-Attachment"
+      : rawRef.split("/").pop() || "TechPack-Attachment";
+
+    // Always route through the application's secure server proxy endpoint (/api/upload/file)
+    const secureDownloadUrl = buildSecureFileDownloadUrl(rawRef);
 
     fileHtml = `
       <div>
         <span style="color:#FFFFFF;font-weight:bold;display:block;margin-bottom:6px;">${escapeHtml(filename)}</span>
-        <a href="${escapeHtml(fileUrl)}" target="_blank" rel="noopener noreferrer" 
+        <a href="${escapeHtml(secureDownloadUrl)}" target="_blank" rel="noopener noreferrer" 
            style="display:inline-block;padding:8px 18px;background-color:#2A2A2A;color:#B7FF00;font-size:12px;font-weight:bold;text-decoration:none;border-radius:4px;border:1px solid #B7FF00;text-transform:uppercase;letter-spacing:1px;">
           OPEN / DOWNLOAD TECH PACK &rarr;
         </a>
       </div>
     `;
-    fileText = `${filename} (${fileUrl})`;
+    fileText = `${filename} (${secureDownloadUrl})`;
   }
 
   const html = `

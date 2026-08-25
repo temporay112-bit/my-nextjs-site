@@ -140,3 +140,14 @@ export function buildVerifyEmailUrl(rawToken: string, request?: HeaderSource): s
   const origin = getPublicOrigin(request);
   return `${origin}/verify-email?token=${encodeURIComponent(cleanToken)}`;
 }
+
+/**
+ * Constructs a single-slash, fully-qualified secure file download/view URL.
+ * Routes through the application's secure server proxy endpoint (/api/upload/file)
+ * to safely stream private Vercel Blob files without exposing private Blob URLs.
+ */
+export function buildSecureFileDownloadUrl(fileRef: string, request?: HeaderSource): string {
+  const cleanRef = fileRef.trim();
+  const origin = getPublicOrigin(request);
+  return `${origin}/api/upload/file?file=${encodeURIComponent(cleanRef)}`;
+}

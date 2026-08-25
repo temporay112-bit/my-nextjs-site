@@ -114,12 +114,10 @@ export default async function AccountInquiriesPage() {
               <div className="space-y-4">
                 {inquiries.map((inquiry) => {
                   const fileUrl = inquiry.fileReference
-                    ? inquiry.fileReference.startsWith("http://") || inquiry.fileReference.startsWith("https://")
-                      ? inquiry.fileReference
-                      : `/api/upload/file?pathname=${encodeURIComponent(inquiry.fileReference)}`
+                    ? `/api/upload/file?file=${encodeURIComponent(inquiry.fileReference)}`
                     : null;
                   const filename = inquiry.fileReference
-                    ? inquiry.fileReference.split("/").pop() || "Tech Pack"
+                    ? inquiry.fileReference.split("/").pop()?.split("?")[0] || "Tech Pack"
                     : null;
 
                   return (

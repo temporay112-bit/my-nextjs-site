@@ -171,7 +171,11 @@ export default function AdminInquiriesPage() {
                     <td className="p-4 whitespace-nowrap">
                       {inq.fileReference ? (
                         <a
-                          href={inq.fileReference}
+                          href={
+                            inq.fileReference.startsWith("/api/upload/file")
+                              ? inq.fileReference
+                              : `/api/upload/file?file=${encodeURIComponent(inq.fileReference)}`
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[#60A5FA] hover:text-[#93C5FD] underline text-[11px]"
@@ -180,7 +184,7 @@ export default function AdminInquiriesPage() {
                           <span>View Artwork</span>
                         </a>
                       ) : (
-                        <span className="text-[#6B7280] text-[11px]">None</span>
+                        <span className="text-[#6B7280]">No File</span>
                       )}
                     </td>
                     <td className="p-4 whitespace-nowrap">
