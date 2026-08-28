@@ -5,7 +5,6 @@ import { WhyChoose } from "@/components/trust/WhyChoose";
 import { ProductShowcase } from "@/components/products/ProductShowcase";
 import { NewArrivals } from "@/components/products/NewArrivals";
 import { ManufacturingSolutions } from "@/components/capabilities/ManufacturingSolutions";
-import { ManufacturingProcess } from "@/components/manufacturing/ManufacturingProcess";
 import { FactoryProofSection } from "@/components/manufacturing/FactoryProofSection";
 import { CertificatesSection } from "@/components/compliance/CertificatesSection";
 import { ShippingMethods } from "@/components/logistics/ShippingMethods";
@@ -35,10 +34,7 @@ export default function HomePage() {
       {/* 06 OEM / ODM / Private Label Section (Theme Family 03) */}
       <ManufacturingSolutions />
 
-      {/* 07 Our Manufacturing Process Section (Theme Family 03) */}
-      <ManufacturingProcess />
-
-      {/* 08 Factory Trust & Manufacturing Proof Section (Theme Family 03) */}
+      {/* 07 Factory Trust & Manufacturing Proof Section (Theme Family 03) */}
       <FactoryProofSection />
 
       {/* 09 Certificates & Compliance Trust Section (Theme Family 01) */}

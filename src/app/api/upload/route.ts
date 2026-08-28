@@ -67,8 +67,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         url: blob.url || blob.downloadUrl,
         downloadUrl: blob.downloadUrl,
         pathname: blob.pathname,
+        fileReference: blob.pathname,
         filename: file.name,
+        originalName: file.name,
         size: file.size,
+        mimeType: file.type || undefined,
       });
     } catch (err: any) {
       console.error("[Upload API Error]:", err);

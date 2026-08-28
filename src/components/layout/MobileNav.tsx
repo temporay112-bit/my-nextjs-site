@@ -26,13 +26,16 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
 
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -48,7 +51,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 md:hidden flex flex-col justify-between bg-slots-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] md:hidden flex flex-col justify-between bg-slots-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile Navigation Menu"

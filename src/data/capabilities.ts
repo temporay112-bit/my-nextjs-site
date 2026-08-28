@@ -17,7 +17,7 @@ export const CAPABILITY_MODELS: CapabilityModel[] = [
     id: "oem",
     number: "01",
     title: "OEM",
-    fullTitle: "ORIGINAL EQUIPMENT MANUFACTURING",
+    fullTitle: "Original equipment manufacturing",
     headline: "YOUR DESIGN. OUR MANUFACTURING.",
     description:
       "You provide your approved design, specifications or tech pack. SLOTS SPORTSWEAR manufactures the product according to the agreed requirements.",
@@ -37,7 +37,7 @@ export const CAPABILITY_MODELS: CapabilityModel[] = [
     id: "odm",
     number: "02",
     title: "ODM",
-    fullTitle: "ORIGINAL DESIGN MANUFACTURING",
+    fullTitle: "Original design manufacturing",
     headline: "FROM CONCEPT TO PRODUCT.",
     description:
       "Use SLOTS SPORTSWEAR product and development capabilities as a starting point for creating customized sportswear for your brand.",
@@ -57,7 +57,7 @@ export const CAPABILITY_MODELS: CapabilityModel[] = [
     id: "private-label",
     number: "03",
     title: "PRIVATE LABEL",
-    fullTitle: "YOUR BRAND. YOUR DETAILS.",
+    fullTitle: "Your brand. Your details.",
     headline: "BUILT FOR YOUR BRAND.",
     description:
       "Add approved brand elements to your garments and packaging so the finished products represent your own label.",

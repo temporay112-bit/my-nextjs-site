@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 .next/
 .vercel/
 
@@ -13,4 +13,5 @@ pnpm-debug.log*
 *.log
 
 # Private database
-data/slots_db.json
+data/slots_db.json
+*.tsbuildinfo

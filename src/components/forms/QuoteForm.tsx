@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { ALLOWED_PRODUCT_CATEGORIES, validateInquiryInput, type InquiryInput } from "@/lib/validations";
+import React, { useState, useCallback } from "react";
+import {
+  ALLOWED_PRODUCT_CATEGORIES,
+  validateInquiryInput,
+  type InquiryInput,
+  type InquiryFileItem,
+} from "@/lib/validations";
 import { FileUpload } from "@/components/forms/FileUpload";
 import { Button } from "@/components/shared/Button";
 import { trackEvent } from "@/lib/analytics";
-import { CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuoteFormProps {
@@ -21,9 +26,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
     productCategory: "golfwear",
     message: "",
     fileReference: null,
+    files: [],
   });
 
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<InquiryFileItem[]>([]);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
@@ -31,33 +37,52 @@ export function QuoteForm({ className }: QuoteFormProps) {
   const [submittedInquiryId, setSubmittedInquiryId] = useState<string | null>(null);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
 
-    if (!hasStartedTyping) {
-      setHasStartedTyping(true);
-      trackEvent("inquiry_start", { category: formData.productCategory });
-    }
+      setHasStartedTyping((prevStarted) => {
+        if (!prevStarted) {
+          trackEvent("inquiry_start", { category: value });
+        }
+        return true;
+      });
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear field errors on change
-    if (fieldErrors[name] || (name === "email" && fieldErrors.contact) || (name === "phone" && fieldErrors.contact)) {
+      // Clear field errors on change
       setFieldErrors((prev) => {
+        if (!prev[name] && !(name === "email" && prev.contact) && !(name === "phone" && prev.contact)) {
+          return prev;
+        }
         const next = { ...prev };
         delete next[name];
         delete next.contact;
         return next;
       });
-    }
-  };
+    },
+    []
+  );
 
-  const handleFileUploaded = (fileReference: string | null, originalName: string | null) => {
-    setFormData((prev) => ({ ...prev, fileReference }));
-    setUploadedFileName(originalName);
-  };
+  const handleFilesChanged = useCallback((files: InquiryFileItem[]) => {
+    setAttachedFiles(files);
+    setFormData((prev) => {
+      const newRef =
+        files.length === 0
+          ? null
+          : files.length === 1
+          ? files[0].pathname
+          : JSON.stringify(files);
+      if (prev.fileReference === newRef && prev.files === files) {
+        return prev;
+      }
+      return {
+        ...prev,
+        files,
+        fileReference: newRef,
+      };
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +124,8 @@ export function QuoteForm({ className }: QuoteFormProps) {
 
       trackEvent("inquiry_submit", {
         category: formData.productCategory,
-        has_techpack: !!formData.fileReference,
+        has_techpack: attachedFiles.length > 0,
+        files_count: attachedFiles.length,
         status: "success",
       });
     } catch (err: unknown) {
@@ -108,7 +134,8 @@ export function QuoteForm({ className }: QuoteFormProps) {
       setSubmitStatus("error");
       trackEvent("inquiry_submit", {
         category: formData.productCategory,
-        has_techpack: !!formData.fileReference,
+        has_techpack: attachedFiles.length > 0,
+        files_count: attachedFiles.length,
         status: "error",
       });
     } finally {
@@ -125,8 +152,9 @@ export function QuoteForm({ className }: QuoteFormProps) {
       productCategory: "golfwear",
       message: "",
       fileReference: null,
+      files: [],
     });
-    setUploadedFileName(null);
+    setAttachedFiles([]);
     setFieldErrors({});
     setSubmitStatus("idle");
     setServerErrorMessage(null);
@@ -139,7 +167,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
     return (
       <div
         className={cn(
-          "rounded-2xl bg-graphite border border-carbon-grey/60 p-8 sm:p-12 text-center shadow-2xl flex flex-col items-center",
+          "rounded-2xl bg-[#171717] border border-[#2A2A2A] p-8 sm:p-12 text-center shadow-2xl flex flex-col items-center",
           className
         )}
       >
@@ -152,23 +180,41 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </h3>
 
         <p className="font-inter text-sm sm:text-base text-light-grey/90 max-w-md mt-3 leading-relaxed">
-          Your custom manufacturing request for <span className="text-slots-white font-semibold">{formData.company}</span> has been securely logged.
+          Your custom manufacturing inquiry for{" "}
+          <span className="text-slots-white font-semibold">{formData.company}</span> has been securely
+          logged. Our engineering and quote team will review your specifications and follow up within 24 hours.
         </p>
 
         {submittedInquiryId && (
-          <div className="mt-4 px-3.5 py-1.5 rounded-lg bg-slots-black/70 border border-carbon-grey/80 text-xs font-mono text-technical-grey">
-            Reference ID: <span className="text-electric-lime">{submittedInquiryId}</span>
+          <div className="mt-5 px-4 py-2 rounded-lg bg-slots-black border border-carbon-grey/80 text-xs font-mono text-technical-grey">
+            Inquiry Reference: <span className="text-electric-lime font-bold">#{submittedInquiryId}</span>
           </div>
         )}
 
-        {uploadedFileName && (
-          <div className="mt-2 text-xs font-inter text-technical-grey">
-            Attached File: <span className="text-light-grey">{uploadedFileName}</span>
+        {attachedFiles.length > 0 && (
+          <div className="mt-4 p-3 rounded-lg bg-slots-black/60 border border-carbon-grey/60 max-w-md w-full text-left">
+            <div className="flex items-center gap-2 text-xs font-sora font-bold text-slots-white mb-2">
+              <Paperclip className="w-3.5 h-3.5 text-electric-lime" />
+              <span>Attached Design Files ({attachedFiles.length}):</span>
+            </div>
+            <ul className="space-y-1 text-xs font-inter text-technical-grey max-h-32 overflow-y-auto">
+              {attachedFiles.map((f, i) => (
+                <li key={i} className="truncate flex items-center gap-1.5">
+                  <span className="text-electric-lime font-mono font-bold">{i + 1}.</span>
+                  <span className="text-light-grey">{f.originalName}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
         <div className="mt-8 pt-6 border-t border-carbon-grey/40 w-full flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button variant="outline" size="md" onClick={resetForm} className="border-carbon-grey hover:bg-carbon-grey text-slots-white">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={resetForm}
+            className="border-carbon-grey hover:bg-carbon-grey text-slots-white"
+          >
             Submit Another Project
           </Button>
           <Button variant="primary" size="md" href="/products">
@@ -184,22 +230,22 @@ export function QuoteForm({ className }: QuoteFormProps) {
       onSubmit={handleSubmit}
       noValidate
       className={cn(
-        "rounded-2xl bg-graphite border border-carbon-grey/60 p-6 sm:p-8 lg:p-10 shadow-2xl flex flex-col gap-5",
+        "rounded-2xl bg-[#171717] border border-[#2A2A2A] p-6 sm:p-8 lg:p-10 shadow-2xl flex flex-col gap-5",
         className
       )}
     >
-      <div className="flex items-center justify-between pb-4 border-b border-carbon-grey/40">
+      <div className="flex items-center justify-between pb-4 border-b border-[#2A2A2A]">
         <div>
           <h3 className="font-sora text-xl sm:text-2xl font-extrabold uppercase tracking-tight text-slots-white">
             REQUEST A QUOTE
           </h3>
           <p className="font-inter text-xs text-technical-grey mt-0.5">
-            Direct B2B sportswear inquiry & technical review
+            Direct B2B sportswear inquiry &amp; technical review
           </p>
         </div>
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-inter text-electric-lime">
-          <ShieldCheck className="w-4 h-4" />
-          <span>NDA Protected</span>
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-slots-black border border-[#2A2A2A] rounded text-[11px] font-inter text-electric-lime">
+          <ShieldCheck className="w-4 h-4 text-electric-lime flex-shrink-0" />
+          <span className="font-semibold">NDA Protected</span>
         </div>
       </div>
 
@@ -217,7 +263,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
       {/* Row 1: Name & Company */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         <div>
-          <label htmlFor="field-name" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+          <label
+            htmlFor="field-name"
+            className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+          >
             Your Name <span className="text-electric-lime">*</span>
           </label>
           <input
@@ -231,10 +280,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
             placeholder="John Doe"
             disabled={isSubmitting}
             className={cn(
-              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              "w-full h-12 px-4 rounded-xl bg-[#141414] border text-slots-white placeholder-technical-grey/70 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-1",
               fieldErrors.name
                 ? "border-red-500 focus-visible:ring-red-400"
-                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+                : "border-[#4A4A4A] hover:border-[#777777] focus-visible:border-electric-lime focus-visible:ring-electric-lime"
             )}
           />
           {fieldErrors.name && (
@@ -246,7 +295,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
 
         <div>
-          <label htmlFor="field-company" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+          <label
+            htmlFor="field-company"
+            className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+          >
             Company / Brand <span className="text-electric-lime">*</span>
           </label>
           <input
@@ -260,10 +312,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
             placeholder="Acme Athletics Ltd."
             disabled={isSubmitting}
             className={cn(
-              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              "w-full h-12 px-4 rounded-xl bg-[#141414] border text-slots-white placeholder-technical-grey/70 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-1",
               fieldErrors.company
                 ? "border-red-500 focus-visible:ring-red-400"
-                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+                : "border-[#4A4A4A] hover:border-[#777777] focus-visible:border-electric-lime focus-visible:ring-electric-lime"
             )}
           />
           {fieldErrors.company && (
@@ -275,10 +327,13 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
       </div>
 
-      {/* Row 2: Business Email & Phone / WhatsApp (Email OR Phone/WhatsApp Required) */}
+      {/* Row 2: Business Email & Phone / WhatsApp (Email OR Phone Required) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         <div>
-          <label htmlFor="field-email" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+          <label
+            htmlFor="field-email"
+            className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+          >
             Business Email <span className="text-technical-grey font-normal normal-case">(or Phone)</span>
           </label>
           <input
@@ -291,10 +346,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
             placeholder="name@company.com"
             disabled={isSubmitting}
             className={cn(
-              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              "w-full h-12 px-4 rounded-xl bg-[#141414] border text-slots-white placeholder-technical-grey/70 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-1",
               fieldErrors.email || fieldErrors.contact
                 ? "border-red-500 focus-visible:ring-red-400"
-                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+                : "border-[#4A4A4A] hover:border-[#777777] focus-visible:border-electric-lime focus-visible:ring-electric-lime"
             )}
           />
           {fieldErrors.email && (
@@ -306,7 +361,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
 
         <div>
-          <label htmlFor="field-phone" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+          <label
+            htmlFor="field-phone"
+            className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+          >
             Phone / WhatsApp <span className="text-technical-grey font-normal normal-case">(or Email)</span>
           </label>
           <input
@@ -319,10 +377,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
             placeholder="+1 555 123 4567"
             disabled={isSubmitting}
             className={cn(
-              "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+              "w-full h-12 px-4 rounded-xl bg-[#141414] border text-slots-white placeholder-technical-grey/70 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-1",
               fieldErrors.phone
                 ? "border-red-500 focus-visible:ring-red-400"
-                : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+                : "border-[#4A4A4A] hover:border-[#777777] focus-visible:border-electric-lime focus-visible:ring-electric-lime"
             )}
           />
           {fieldErrors.phone && (
@@ -334,9 +392,19 @@ export function QuoteForm({ className }: QuoteFormProps) {
         </div>
       </div>
 
+      {fieldErrors.contact && !fieldErrors.email && !fieldErrors.phone && (
+        <p className="font-inter text-xs text-red-400 -mt-2 flex items-center gap-1">
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>{fieldErrors.contact}</span>
+        </p>
+      )}
+
       {/* Row 3: Product Category */}
       <div>
-        <label htmlFor="field-productCategory" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
+        <label
+          htmlFor="field-productCategory"
+          className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+        >
           Product Category <span className="text-electric-lime">*</span>
         </label>
         <div className="relative">
@@ -347,10 +415,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
             value={formData.productCategory}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className="w-full px-4 py-3 rounded-xl bg-slots-black border border-carbon-grey/70 text-slots-white font-inter text-sm transition-colors focus-visible:outline-none focus-visible:border-electric-lime focus-visible:ring-2 focus-visible:ring-electric-lime appearance-none cursor-pointer"
+            className="w-full h-12 px-4 rounded-xl bg-[#141414] border border-[#4A4A4A] hover:border-[#777777] text-slots-white font-inter text-sm transition-colors focus-visible:outline-none focus-visible:border-electric-lime focus-visible:ring-1 focus-visible:ring-electric-lime appearance-none cursor-pointer"
           >
             {ALLOWED_PRODUCT_CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value} className="bg-slots-black text-slots-white">
+              <option key={cat.value} value={cat.value} className="bg-[#171717] text-slots-white">
                 {cat.label}
               </option>
             ))}
@@ -371,8 +439,11 @@ export function QuoteForm({ className }: QuoteFormProps) {
 
       {/* Row 4: Project Requirements / Message */}
       <div>
-        <label htmlFor="field-message" className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2">
-          Project Requirements & Specifications <span className="text-electric-lime">*</span>
+        <label
+          htmlFor="field-message"
+          className="block font-sora text-xs font-bold uppercase tracking-wider text-slots-white mb-2"
+        >
+          Project Requirements &amp; Specifications <span className="text-electric-lime">*</span>
         </label>
         <textarea
           id="field-message"
@@ -384,10 +455,10 @@ export function QuoteForm({ className }: QuoteFormProps) {
           placeholder="Please describe your project (quantities, fabrics, target delivery timeline, customization requirements)..."
           disabled={isSubmitting}
           className={cn(
-            "w-full px-4 py-3 rounded-xl bg-slots-black border text-slots-white placeholder-technical-grey/60 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 resize-y",
+            "w-full px-4 py-3 rounded-xl bg-[#141414] border text-slots-white placeholder-technical-grey/70 font-inter text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 resize-y min-h-[120px]",
             fieldErrors.message
               ? "border-red-500 focus-visible:ring-red-400"
-              : "border-carbon-grey/70 focus-visible:border-electric-lime focus-visible:ring-electric-lime"
+              : "border-[#4A4A4A] hover:border-[#777777] focus-visible:border-electric-lime focus-visible:ring-electric-lime"
           )}
         />
         {fieldErrors.message && (
@@ -398,8 +469,8 @@ export function QuoteForm({ className }: QuoteFormProps) {
         )}
       </div>
 
-      {/* Row 5: Vercel Blob File Upload */}
-      <FileUpload onFileUploaded={handleFileUploaded} disabled={isSubmitting} />
+      {/* Row 5: Multi-File Vercel Blob Upload */}
+      <FileUpload onFilesChanged={handleFilesChanged} disabled={isSubmitting} />
 
       {/* Submit Button */}
       <div className="pt-2">
@@ -409,7 +480,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
           size="lg"
           fullWidth
           disabled={isSubmitting}
-          className="group relative overflow-hidden flex items-center justify-center gap-2"
+          className="group relative overflow-hidden flex items-center justify-center gap-2 h-14"
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
@@ -423,7 +494,7 @@ export function QuoteForm({ className }: QuoteFormProps) {
             </>
           )}
         </Button>
-        <p className="font-inter text-[11px] text-center text-technical-grey/80 mt-2.5">
+        <p className="font-inter text-xs text-center text-technical-grey/80 mt-2.5">
           By submitting, you agree to our standard manufacturing confidentiality terms. We reply within 24 hours.
         </p>
       </div>

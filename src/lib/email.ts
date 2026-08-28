@@ -9,7 +9,7 @@
 
 import { getTransporter, sendMail, verifySmtpConnection } from "./email/mailer";
 import type { EmailDeliveryResult } from "./email/mailer";
-import { InquiryInput } from "@/lib/validations";
+import { InquiryInput, parseInquiryFiles } from "@/lib/validations";
 import { getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl, buildSecureFileDownloadUrl } from "@/lib/url";
 
 export { getTransporter, verifySmtpConnection, getPublicOrigin, buildResetPasswordUrl, buildVerifyEmailUrl, buildSecureFileDownloadUrl };
@@ -28,6 +28,12 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
+function formatBytes(bytes?: number): string {
+  if (!bytes || bytes <= 0) return "";
+  if (bytes < 1024 * 1024) return ` (${(bytes / 1024).toFixed(0)} KB)`;
+  return ` (${(bytes / (1024 * 1024)).toFixed(1)} MB)`;
+}
+
 /**
  * 1. Send B2B Quote Inquiry Notification to Factory
  */
@@ -38,29 +44,63 @@ export async function sendQuoteNotificationEmail(
 ): Promise<EmailDeliveryResult> {
   const subject = `New SLOTS SPORTSWEAR B2B Quote Request — ${inquiry.company}`;
 
+  const attachedFiles = parseInquiryFiles(inquiry.files || inquiry.fileReference);
+
   let fileHtml = '<span style="color:#777777;">No file attached</span>';
   let fileText = "No file attached";
 
-  if (inquiry.fileReference) {
-    const rawRef = inquiry.fileReference;
-    const isUrl = rawRef.startsWith("http://") || rawRef.startsWith("https://");
-    const filename = isUrl
-      ? rawRef.split("/").pop()?.split("?")[0] || "TechPack-Attachment"
-      : rawRef.split("/").pop() || "TechPack-Attachment";
-
-    // Always route through the application's secure server proxy endpoint (/api/upload/file)
-    const secureDownloadUrl = buildSecureFileDownloadUrl(rawRef);
+  if (attachedFiles.length === 1) {
+    const singleFile = attachedFiles[0];
+    const secureDownloadUrl = buildSecureFileDownloadUrl(singleFile.pathname);
+    const sizeStr = formatBytes(singleFile.size);
 
     fileHtml = `
       <div>
-        <span style="color:#FFFFFF;font-weight:bold;display:block;margin-bottom:6px;">${escapeHtml(filename)}</span>
+        <span style="color:#FFFFFF;font-weight:bold;display:block;margin-bottom:8px;">
+          ${escapeHtml(singleFile.originalName)}${sizeStr}
+        </span>
         <a href="${escapeHtml(secureDownloadUrl)}" target="_blank" rel="noopener noreferrer" 
-           style="display:inline-block;padding:8px 18px;background-color:#2A2A2A;color:#B7FF00;font-size:12px;font-weight:bold;text-decoration:none;border-radius:4px;border:1px solid #B7FF00;text-transform:uppercase;letter-spacing:1px;">
+           style="display:inline-block;padding:10px 20px;background-color:#2A2A2A;color:#B7FF00;font-size:12px;font-weight:bold;text-decoration:none;border-radius:4px;border:1px solid #B7FF00;text-transform:uppercase;letter-spacing:1px;">
           OPEN / DOWNLOAD TECH PACK &rarr;
         </a>
       </div>
     `;
-    fileText = `${filename} (${secureDownloadUrl})`;
+    fileText = `${singleFile.originalName}${sizeStr} (${secureDownloadUrl})`;
+  } else if (attachedFiles.length > 1) {
+    const fileRows = attachedFiles.map((file, idx) => {
+      const secureDownloadUrl = buildSecureFileDownloadUrl(file.pathname);
+      const indexStr = (idx + 1).toString().padStart(2, "0");
+      const sizeStr = formatBytes(file.size);
+
+      return `
+        <div style="padding:10px 12px;background-color:#111111;border:1px solid #222222;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;border-radius:3px;">
+          <div>
+            <span style="color:#B7FF00;font-family:monospace;font-size:11px;font-weight:bold;margin-right:6px;">${indexStr}</span>
+            <span style="color:#FFFFFF;font-size:13px;font-weight:bold;">${escapeHtml(file.originalName)}</span>
+            <span style="color:#777777;font-size:11px;">${sizeStr}</span>
+          </div>
+          <div style="margin-top:6px;">
+            <a href="${escapeHtml(secureDownloadUrl)}" target="_blank" rel="noopener noreferrer"
+               style="display:inline-block;padding:6px 14px;background-color:#2A2A2A;color:#B7FF00;font-size:11px;font-weight:bold;text-decoration:none;border-radius:3px;border:1px solid #B7FF00;text-transform:uppercase;letter-spacing:0.5px;">
+              OPEN / DOWNLOAD &rarr;
+            </a>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    fileHtml = `
+      <div>
+        <span style="color:#B7FF00;font-size:11px;font-weight:bold;display:block;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">
+          ATTACHED TECH PACK / DESIGN FILES (${attachedFiles.length} FILES)
+        </span>
+        ${fileRows}
+      </div>
+    `;
+
+    fileText = attachedFiles
+      .map((f, idx) => `${(idx + 1).toString().padStart(2, "0")} — ${f.originalName}${formatBytes(f.size)}: ${buildSecureFileDownloadUrl(f.pathname)}`)
+      .join("\n");
   }
 
   const html = `
@@ -87,7 +127,7 @@ export async function sendQuoteNotificationEmail(
       <p style="color:#D1D5DB;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${escapeHtml(inquiry.message)}</p>
     </div>
     <div style="background-color:#050505;padding:16px;border:1px solid #2A2A2A;margin-bottom:20px;">
-      <h3 style="color:#FFFFFF;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;">Tech Pack / Artwork Attachment:</h3>
+      <h3 style="color:#FFFFFF;font-size:13px;margin:0 0 8px 0;text-transform:uppercase;letter-spacing:0.5px;">Tech Pack / Artwork Attachments:</h3>
       ${fileHtml}
     </div>
     <div style="font-size:11px;color:#777777;text-align:center;padding-top:16px;border-top:1px solid #2A2A2A;">
@@ -110,7 +150,7 @@ Received: ${createdAt}
 Project Details / Message:
 ${inquiry.message}
 
-Tech Pack / Attachment:
+Tech Pack / Attachments:
 ${fileText}
 `;
 

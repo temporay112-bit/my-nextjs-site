@@ -31,7 +31,7 @@ export function NewArrivals({ className }: NewArrivalsProps) {
       id="new-arrivals"
       aria-label="SLOTS SPORTSWEAR New Arrivals"
       className={cn(
-        "relative w-full bg-[#FFFFFF] text-[#171717] py-14 sm:py-16 lg:py-16 border-b border-[#E5E7EB] overflow-hidden",
+        "relative w-full bg-[#FFFFFF] text-[#171717] py-12 sm:py-14 lg:py-16 border-b border-[#E5E7EB] overflow-hidden",
         className
       )}
     >
@@ -45,61 +45,50 @@ export function NewArrivals({ className }: NewArrivalsProps) {
           theme="light"
         />
 
-        {/* 8-Product Grid: 4 cols on desktop (2 rows), 2 cols on tablet, 1 col on mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 mt-10 sm:mt-12">
-          {products.map((item) => (
+        {/* 12-Product Grid: 4 cols on desktop (3 rows), 2 cols on mobile (6 rows) */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 mt-10 sm:mt-12">
+          {products.slice(0, 12).map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-none bg-[#FFFFFF] border border-[#E5E7EB] hover:border-[#171717] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-lime"
+              className="group relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#FFFFFF] shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-lime"
             >
-              {/* Product Image Container */}
-              <div className="relative aspect-square w-full overflow-hidden bg-[#FAFAFA] flex items-center justify-center">
-                <Image
-                  src={item.image}
-                  alt={item.alt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-contain p-4 transition-transform duration-300 ease-in-out group-hover:scale-105 motion-reduce:transform-none"
-                />
+              {/* Product Image Covering Card */}
+              <Image
+                src={item.image}
+                alt={item.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transform-none"
+              />
 
-                {/* Quick View Hover Overlay on Desktop */}
-                <div
-                  className="absolute inset-0 bg-[#050505]/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300 ease-in-out hidden sm:flex items-center justify-center motion-reduce:transition-none pointer-events-none"
-                  aria-hidden="true"
-                >
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFFFFF] text-[#171717] text-xs font-sora font-bold uppercase tracking-wider shadow-md rounded-none">
-                    <Eye className="w-3.5 h-3.5 text-[#171717]" />
-                    <span>QUICK VIEW</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Product Text Area: ONLY Category & Product Name */}
-              <div className="p-4 sm:p-5 flex flex-col gap-1 border-t border-[#E5E7EB] bg-[#FFFFFF]">
-                {/* Category Label */}
-                <span className="font-barlow text-[11px] font-bold uppercase tracking-widest text-[#6B7280]">
-                  {item.category}
-                </span>
-
+              {/* Floating Bottom Info Overlay Box */}
+              <div className="absolute left-2.5 right-2.5 bottom-2.5 sm:left-3 sm:right-3 sm:bottom-3 bg-[#FFFFFF] rounded-xl p-2.5 sm:p-3.5 shadow-md border border-black/5 flex flex-col gap-1 sm:gap-1.5 pointer-events-auto">
                 {/* Product Name */}
-                <h3 className="font-sora text-sm sm:text-[15px] font-bold text-[#171717] group-hover:text-electric-lime transition-colors duration-200 line-clamp-1">
+                <h3 className="font-sora text-xs sm:text-sm font-bold text-black line-clamp-1 leading-snug">
                   {item.title}
                 </h3>
+
+                {/* GET QUOTE with Elongated Horizontal Arrow Line */}
+                <div className="flex items-center justify-between font-inter text-xs font-semibold text-black uppercase tracking-wider group-hover:text-electric-lime transition-colors mt-0.5">
+                  <span className="shrink-0 font-sora font-extrabold text-xs">GET QUOTE</span>
+                  <span className="flex-1 mx-2 sm:mx-2.5 h-[1.5px] bg-black/60 group-hover:bg-electric-lime transition-colors" />
+                  <ArrowRight className="w-4 h-4 text-black group-hover:text-electric-lime transition-transform group-hover:translate-x-1 shrink-0 stroke-[2.5]" />
+                </div>
               </div>
             </Link>
           ))}
         </div>
 
         {/* Section Bottom CTA */}
-        <div className="mt-10 sm:mt-12 flex justify-center">
+        <div className="mt-10 sm:mt-14 flex justify-center">
           <Button
             variant="outline"
             size="md"
-            href={NEW_ARRIVALS_CONTENT.cta.href}
+            href={NEW_ARRIVALS_CONTENT.cta.href || "/products"}
             className="rounded-none border-[#171717] text-[#171717] hover:bg-electric-lime hover:border-electric-lime hover:text-[#050505] transition-all duration-300 font-extrabold shadow-sm"
           >
-            <span>{NEW_ARRIVALS_CONTENT.cta.label}</span>
+            <span>VIEW ALL PRODUCTS</span>
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

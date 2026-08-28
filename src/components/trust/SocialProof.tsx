@@ -42,15 +42,15 @@ export function SocialProof({ className }: SocialProofProps) {
           className="mb-10 sm:mb-12"
         />
 
-        {/* 4-Column Responsive Grid */}
+        {/* 4-Card Grid: 2 columns x 2 rows on mobile/tablet, 4 columns on desktop */}
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 lg:gap-6"
           role="list"
           aria-label="Company scale and capability metrics"
         >
           {metrics.map((metric, index) => (
-            <div key={metric.id} role="listitem">
-              <MetricCard metric={metric} index={index} />
+            <div key={metric.id} role="listitem" className="h-full">
+              <MetricCard metric={metric} index={index} className="h-full" />
             </div>
           ))}
         </div>
@@ -62,9 +62,9 @@ export function SocialProof({ className }: SocialProofProps) {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-sora text-sm sm:text-base font-bold text-slots-white uppercase tracking-tight">
+              <h3 className="font-sora text-sm sm:text-base font-bold text-slots-white uppercase tracking-tight">
                 READY TO SCALE YOUR SPORTSWEAR LINE?
-              </h4>
+              </h3>
               <p className="font-inter text-xs sm:text-sm text-technical-grey mt-0.5">
                 From tech pack development to full-scale export manufacturing, our production team is ready.
               </p>

@@ -16,21 +16,43 @@ export function TrustBadges({ className }: TrustBadgesProps) {
     <section
       aria-label="Why brands trust SLOTS SPORTSWEAR"
       className={cn(
-        "relative w-full bg-[#FFFFFF] border-t border-b border-[#E5E7EB]",
+        "relative w-full bg-[#FFFFFF] border-t border-b border-[#E5E7EB] overflow-hidden py-3 sm:py-3.5",
         className
       )}
     >
       {/* Visually hidden heading for screen readers */}
       <h2 className="sr-only">Key Strengths</h2>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-8 lg:py-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0">
+      {/* Subtle edge fades */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 z-10 bg-gradient-to-r from-white via-white/80 to-transparent"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 z-10 bg-gradient-to-l from-white via-white/80 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Infinite Marquee Track */}
+      <div
+        className="animate-marquee-infinite flex items-center"
+        style={{ animationDuration: "35s" }}
+      >
+        {/* Sequence 1 */}
+        <div className="flex items-center shrink-0">
           {TRUST_BADGES.map((badge, index) => (
-            <TrustBadgeCard
-              key={badge.id}
-              badge={badge}
-              showDivider={index > 0}
-            />
+            <div key={`track1-${badge.id}`} className="shrink-0 px-4 sm:px-6 md:px-8">
+              <TrustBadgeCard badge={badge} showDivider={index > 0} />
+            </div>
+          ))}
+        </div>
+
+        {/* Sequence 2 (Seamless loop duplicate) */}
+        <div className="flex items-center shrink-0" aria-hidden="true">
+          {TRUST_BADGES.map((badge, index) => (
+            <div key={`track2-${badge.id}`} className="shrink-0 px-4 sm:px-6 md:px-8">
+              <TrustBadgeCard badge={badge} showDivider={true} />
+            </div>
           ))}
         </div>
       </div>

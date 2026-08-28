@@ -17,7 +17,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: '01 — GOLFWEAR & CASUAL',
     title: 'CASUAL ESSENTIALS',
     description: 'Premium performance golf & casual apparel engineered for your brand.',
-    image: '/images/hero/hero-01.jpg',
+    image: '/images/hero/new hero images/new hero-01.jpg',
     alt: 'SLOTS SPORTSWEAR Casual Essentials and Golfwear manufacturing',
   },
   {
@@ -27,7 +27,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: '02 — SPORTSWEAR & ACTIVE',
     title: 'PLAY. PERFORM. WIN.',
     description: 'Custom performance sportswear engineered for athletes and modern apparel brands.',
-    image: '/images/hero/hero-02.jpg',
+    image: '/images/hero/new hero images/new hero-02.jpg',
     alt: 'SLOTS SPORTSWEAR Performance Soccer Uniform and Training Activewear',
   },
   {
@@ -37,7 +37,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: '03 — TEAMWEAR & LEATHER',
     title: 'LEATHER & TEAMWEAR',
     description: 'Custom teamwear and leather outerwear crafted to endure and impress.',
-    image: '/images/hero/hero-03.jpg',
+    image: '/images/hero/new hero images/new hero-03.jpg',
     alt: 'SLOTS SPORTSWEAR Premium Leather Jacket and Outerwear production',
   },
   {
@@ -47,7 +47,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: '04 — OEM / PRIVATE LABEL',
     title: 'STREETWEAR & OEM',
     description: 'From tech pack development to full-package custom branded apparel production.',
-    image: '/images/hero/hero-04.jpg',
+    image: '/images/hero/new hero images/new hero-04.jpg',
     alt: 'SLOTS SPORTSWEAR Custom Streetwear Hoodie and Private Label Manufacturing',
   },
 ];

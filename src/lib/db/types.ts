@@ -113,6 +113,14 @@ export interface Order {
   updatedAt: string;
 }
 
+export interface InquiryFileItem {
+  pathname: string;
+  originalName: string;
+  mimeType?: string;
+  size?: number;
+  uploadedAt?: string;
+}
+
 export interface Inquiry {
   id: string;
   customerId?: string;
@@ -124,6 +132,7 @@ export interface Inquiry {
   productCategory?: string;
   message: string;
   fileReference?: string;
+  files?: InquiryFileItem[];
   status?: string;
   createdAt: string;
   updatedAt: string;

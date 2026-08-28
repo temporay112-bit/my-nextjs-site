@@ -48,9 +48,9 @@ export function QuoteSection({ className }: QuoteSectionProps) {
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
+                    <h3 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
                       Direct Factory Pricing &amp; Support
-                    </h4>
+                    </h3>
                     <p className="font-inter text-xs text-technical-grey mt-0.5">
                       Work directly with our production facility in Sialkot without broker markups.
                     </p>
@@ -62,9 +62,9 @@ export function QuoteSection({ className }: QuoteSectionProps) {
                     <FileText className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
+                    <h3 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
                       Tech Pack &amp; Sample Development
-                    </h4>
+                    </h3>
                     <p className="font-inter text-xs text-technical-grey mt-0.5">
                       Upload PDF, AI, PSD or ZIP files for rapid specification &amp; pattern review.
                     </p>
@@ -76,9 +76,9 @@ export function QuoteSection({ className }: QuoteSectionProps) {
                     <Clock className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
+                    <h3 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
                       Rapid B2B Response
-                    </h4>
+                    </h3>
                     <p className="font-inter text-xs text-technical-grey mt-0.5">
                       Our commercial team reviews all inquiries promptly during working hours.
                     </p>
@@ -90,9 +90,9 @@ export function QuoteSection({ className }: QuoteSectionProps) {
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
+                    <h3 className="font-sora text-xs font-bold uppercase tracking-wider text-slots-white">
                       NDA &amp; Private Label Confidentiality
-                    </h4>
+                    </h3>
                     <p className="font-inter text-xs text-technical-grey mt-0.5">
                       Your proprietary garment designs and branding assets remain 100% protected.
                     </p>

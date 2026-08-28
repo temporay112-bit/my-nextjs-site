@@ -9,17 +9,17 @@ import { ProductsCta } from "@/components/products/ProductsCta";
 import { Layers, ShieldCheck, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "B2B Custom Sportswear Products Catalogue | SLOTS SPORTSWEAR",
+  title: "Custom Sportswear Products | SLOTS SPORTSWEAR",
   description:
-    "Explore SLOTS SPORTSWEAR's verified B2B custom sportswear catalogue: Performance golf polos, athletic shirts, training shorts, golf gloves, tank tops, compression sleeves, and women's activewear.",
+    "Explore custom sportswear products from SLOTS SPORTSWEAR, including golfwear, teamwear, performance apparel and other B2B manufacturing categories.",
   alternates: {
     canonical: "/products",
   },
   openGraph: {
-    title: "Custom Sportswear Products Catalogue | SLOTS SPORTSWEAR",
+    title: "Custom Sportswear Products | SLOTS SPORTSWEAR",
     description:
-      "Full B2B custom sportswear catalogue: Golfwear, Activewear, Shorts, Gloves, Tank Tops, and Compression Sleeves manufactured in Sialkot, Pakistan.",
-    url: "https://slotssportswear.com/products",
+      "Explore custom sportswear products from SLOTS SPORTSWEAR, including golfwear, teamwear, performance apparel and other B2B manufacturing categories.",
+    url: "https://slotsdesign.vercel.app/products",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Custom Sportswear Products Catalogue | SLOTS SPORTSWEAR",
+    title: "Custom Sportswear Products | SLOTS SPORTSWEAR",
     description:
-      "B2B custom sportswear and golfwear manufacturing catalogue from Sialkot, Pakistan.",
+      "Explore custom sportswear products from SLOTS SPORTSWEAR, including golfwear, teamwear, performance apparel and other B2B manufacturing categories.",
     images: ["/images/products/Polo/2.png"],
   },
 };
@@ -108,13 +108,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: "https://slotssportswear.com/products",
+        item: "https://slotsdesign.vercel.app/products",
       },
       ...(currentCategory
         ? [
@@ -122,7 +122,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               "@type": "ListItem",
               position: 3,
               name: currentCategory.name,
-              item: `https://slotssportswear.com/products?category=${currentCategory.slug}`,
+              item: `https://slotsdesign.vercel.app/products?category=${currentCategory.slug}`,
             },
           ]
         : []),

@@ -1,6 +1,5 @@
 import React from "react";
-import { VERIFIED_SHIPPING_OPTIONS, SHIPPING_MARQUEE_LOGOS } from "@/data/shipping";
-import { InfiniteLogoMarquee } from "@/components/compliance/InfiniteLogoMarquee";
+import { VERIFIED_SHIPPING_OPTIONS } from "@/data/shipping";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Clock, ShieldCheck, CheckCircle2, AlertCircle, FileText, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,11 +14,6 @@ interface ShippingMethodsProps {
  * Sourced directly from verified SHIPPINGS TERMS & CUSTOMS DUTY AGREEMENT:
  * - Option 01: DDP CARGO SERVICE (All Costs Included / 8-10 business days / Exporter paid)
  * - Option 02: EXPRESS SHIPPING VIA DHL (4-6 business days / Client paid duties at delivery)
- *
- * Integrates:
- * 1. InfiniteLogoMarquee moving right-to-left with clean transparent standalone logos.
- * 2. Two distinct, clear verified shipping detail cards.
- * 3. Verified logistics governance & client advisory note.
  */
 export function ShippingMethods({ className }: ShippingMethodsProps) {
   const publishedOptions = VERIFIED_SHIPPING_OPTIONS.filter((o) => o.isPublished);
@@ -43,20 +37,6 @@ export function ShippingMethods({ className }: ShippingMethodsProps) {
           theme="light"
           className="mb-8 sm:mb-12"
         />
-
-        {/* Continuous Infinite Logo Marquee (Right-to-Left Direction) */}
-        <div className="my-4 sm:my-6 pb-6 border-b border-light-grey">
-          <InfiniteLogoMarquee
-            items={SHIPPING_MARQUEE_LOGOS}
-            direction="right"
-            speedSeconds={28}
-            logoHeightClass="h-16 sm:h-20"
-            gapClass="gap-16 sm:gap-24 lg:gap-32"
-            showLabels={true}
-            theme="light"
-            labelTheme="light"
-          />
-        </div>
 
         {/* 2 Verified Shipping Option Detail Cards */}
         <div className="mt-8 sm:mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">

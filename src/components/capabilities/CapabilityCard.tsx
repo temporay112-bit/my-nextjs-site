@@ -43,7 +43,7 @@ export function CapabilityCard({ capability, className }: CapabilityCardProps) {
               {capability.title}
             </h3>
           </div>
-          <p className="font-sora text-[11px] sm:text-xs font-bold uppercase tracking-wider text-technical-grey mt-1">
+          <p className="font-sora text-xs font-semibold text-technical-grey mt-1">
             {capability.fullTitle}
           </p>
 
@@ -58,12 +58,12 @@ export function CapabilityCard({ capability, className }: CapabilityCardProps) {
 
         {/* Benefits Checklist */}
         <div className="mt-6 sm:mt-7 pt-5 border-t border-carbon-grey/40">
-          <p className="font-sora text-[11px] font-bold uppercase tracking-wider text-technical-grey mb-3">
+          <p className="font-sora text-xs font-bold uppercase tracking-wider text-technical-grey mb-3">
             Key Inclusions:
           </p>
           <ul className="space-y-2.5">
             {capability.benefits.map((benefit, index) => (
-              <li key={index} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-light-grey/90">
+              <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-light-grey/90">
                 <span className="flex-shrink-0 w-4 h-4 rounded-full bg-electric-lime/10 border border-electric-lime/30 text-electric-lime flex items-center justify-center mt-0.5">
                   <Check className="w-2.5 h-2.5 stroke-[2.5]" aria-hidden="true" />
                 </span>

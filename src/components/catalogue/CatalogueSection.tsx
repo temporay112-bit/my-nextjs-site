@@ -3,10 +3,9 @@
 import React from "react";
 import Image from "next/image";
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { Button } from "@/components/shared/Button";
 import { OFFICIAL_CATALOGUE, CATALOGUE_SECTION_CONTENT } from "@/data/catalogue";
 import { trackEvent } from "@/lib/analytics";
-import { FileText, Download, ExternalLink, CheckCircle2, Shield, Sparkles } from "lucide-react";
+import { Download, ExternalLink, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CatalogueSectionProps {
@@ -120,41 +119,17 @@ export function CatalogueSection({ className }: CatalogueSectionProps) {
               </div>
             </div>
 
-            {/* Right Column: Catalogue Visual Representation */}
+            {/* Right Column: Catalogue Cover Image */}
             <div className="relative flex items-center justify-center">
-              <div className="w-full max-w-[380px] aspect-[3/4] rounded-2xl bg-gradient-to-br from-carbon-grey via-slots-black to-graphite border border-carbon-grey/90 p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative group overflow-hidden">
-                {/* Decorative border glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-electric-lime/10 rounded-full blur-2xl pointer-events-none" />
-
-                {/* Top Badge */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-electric-lime animate-pulse" />
-                    <span className="font-sora text-[11px] font-bold uppercase tracking-widest-brand text-slots-white">
-                      SLOTS SPORTSWEAR
-                    </span>
-                  </div>
-                  <FileText className="w-6 h-6 text-electric-lime/80" />
-                </div>
-
-                {/* Center Book Art / Preview Graphic */}
-                <div className="text-center my-auto py-6">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-carbon-grey/80 border border-carbon-grey flex items-center justify-center text-electric-lime mb-4 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                    <Sparkles className="w-8 h-8" />
-                  </div>
-                  <h4 className="font-sora text-xl sm:text-2xl font-black uppercase tracking-tight text-slots-white">
-                    B2B PRODUCT CATALOGUE
-                  </h4>
-                  <p className="font-barlow text-sm font-bold text-electric-lime tracking-widest-brand uppercase mt-1">
-                    EXPORT COLLECTION
-                  </p>
-                </div>
-
-                {/* Bottom Spec Footer */}
-                <div className="pt-4 border-t border-carbon-grey/60 flex items-center justify-between text-[11px] font-inter text-technical-grey">
-                  <span>Authentic Sialkot Manufacturing</span>
-                  <span className="font-mono text-slots-white">{OFFICIAL_CATALOGUE.year}</span>
-                </div>
+              <div className="w-full max-w-[380px] sm:max-w-[420px] aspect-[3/4] rounded-2xl border border-carbon-grey/70 shadow-2xl relative overflow-hidden bg-slots-black">
+                <Image
+                  src={OFFICIAL_CATALOGUE.coverImage || "/images/catalogue/catalogue-cover.jpg"}
+                  alt="SLOTS SPORTSWEAR 2026 Product Catalogue Cover"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
+                  className="object-cover object-center"
+                  priority
+                />
               </div>
             </div>
           </div>

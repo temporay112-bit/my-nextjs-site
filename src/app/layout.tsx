@@ -29,22 +29,25 @@ const barlow = Barlow_Condensed({
 export const metadata: Metadata = {
   metadataBase: new URL("https://slotsdesign.vercel.app"),
   title: {
-    default: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    default: "Custom Sportswear Manufacturer & Exporter | SLOTS SPORTSWEAR",
     template: "%s | SLOTS SPORTSWEAR",
   },
   description:
-    "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, teamwear, private label, and bulk apparel production exported from Sialkot worldwide.",
+    "SLOTS SPORTSWEAR is a B2B custom sportswear manufacturer and exporter from Sialkot, Pakistan, specializing in OEM, ODM, private label, golfwear, teamwear and bulk apparel production.",
   keywords: [
+    "sportswear manufacturer USA",
     "custom sportswear manufacturer",
+    "sportswear manufacturer Pakistan",
+    "Sialkot sportswear manufacturer",
+    "custom sportswear supplier",
+    "OEM sportswear manufacturer",
+    "ODM sportswear manufacturer",
+    "private label sportswear manufacturer",
     "golfwear manufacturer",
-    "private label sportswear",
-    "OEM apparel manufacturer",
-    "ODM sportswear supplier",
-    "bulk sportswear manufacturing",
-    "Sialkot sportswear exporter",
-    "sportswear supplier Pakistan",
-    "custom athletic wear factory",
-    "sublimation sportswear manufacturer",
+    "custom golf apparel manufacturer",
+    "teamwear manufacturer",
+    "bulk sportswear manufacturer",
+    "sportswear exporter Pakistan",
   ],
   authors: [{ name: "SLOTS SPORTSWEAR" }],
   creator: "SLOTS SPORTSWEAR",
@@ -58,16 +61,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    title: "Custom Sportswear Manufacturer & Exporter | SLOTS SPORTSWEAR",
     description:
-      "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, teamwear, private label, and bulk apparel production.",
+      "SLOTS SPORTSWEAR is a B2B custom sportswear manufacturer and exporter from Sialkot, Pakistan, specializing in OEM, ODM, private label, golfwear, teamwear and bulk apparel production.",
     url: "https://slotsdesign.vercel.app",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/images/hero/hero-01.jpg",
+        url: "/images/hero/new hero images/new hero-01.jpg",
         width: 1200,
         height: 630,
         alt: "SLOTS SPORTSWEAR High Performance Custom Manufacturing",
@@ -76,10 +79,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "SLOTS SPORTSWEAR | Custom Sportswear Manufacturer & Exporter",
+    title: "Custom Sportswear Manufacturer & Exporter | SLOTS SPORTSWEAR",
     description:
-      "Premium B2B custom sportswear manufacturing partner specializing in OEM/ODM, golfwear, and private label sportswear.",
-    images: ["/images/hero/hero-01.jpg"],
+      "SLOTS SPORTSWEAR is a B2B custom sportswear manufacturer and exporter from Sialkot, Pakistan, specializing in OEM, ODM, private label, golfwear, teamwear and bulk apparel production.",
+    images: ["/images/hero/new hero images/new hero-01.jpg"],
   },
   robots: {
     index: true,

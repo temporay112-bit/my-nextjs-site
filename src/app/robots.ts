@@ -1,8 +1,7 @@
 import { MetadataRoute } from "next";
-import { getPublicOrigin } from "@/lib/url";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getPublicOrigin();
+  const baseUrl = "https://slotsdesign.vercel.app";
 
   return {
     rules: [

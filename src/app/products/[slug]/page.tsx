@@ -64,7 +64,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const relatedResult = await db.getProductsAsync({ categorySlug: category?.slug, limit: 4, publishedOnly: true });
   const relatedProducts = relatedResult.products.filter((p) => p.id !== product.id).slice(0, 3);
 
-  // Schema.org Product Structured Data
+  // Schema.org Product Structured Data (Truthful B2B entity schema without fake retail pricing)
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -76,13 +76,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       name: "SLOTS SPORTSWEAR",
     },
     category: category?.name,
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "USD",
-      price: "0.00",
-      priceValidUntil: "2027-12-31",
-      availability: "https://schema.org/InStock",
-      itemCondition: "https://schema.org/NewCondition",
+    manufacturer: {
+      "@type": "Organization",
+      name: "SLOTS SPORTSWEAR",
+      url: "https://slotsdesign.vercel.app",
     },
   };
 
@@ -94,13 +91,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Products",
-        item: "https://slotssportswear.com/products",
+        item: "https://slotsdesign.vercel.app/products",
       },
       ...(category
         ? [
@@ -108,7 +105,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               "@type": "ListItem",
               position: 3,
               name: category.name,
-              item: `https://slotssportswear.com/products?category=${category.slug}`,
+              item: `https://slotsdesign.vercel.app/products?category=${category.slug}`,
             },
           ]
         : []),
@@ -116,7 +113,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         "@type": "ListItem",
         position: category ? 4 : 3,
         name: product.name,
-        item: `https://slotssportswear.com/products/${product.slug}`,
+        item: `https://slotsdesign.vercel.app/products/${product.slug}`,
       },
     ],
   };

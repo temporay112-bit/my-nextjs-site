@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 export async function GET() {
   try {
     await requireAdmin();
-    const inquiries = db.getInquiries();
+    const inquiries = await db.getInquiriesAsync();
     return NextResponse.json({ inquiries });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Unauthorized" }, { status: 401 });

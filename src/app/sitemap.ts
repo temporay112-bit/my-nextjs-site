@@ -1,11 +1,11 @@
 import { MetadataRoute } from "next";
-import { getPublicOrigin } from "@/lib/url";
+import { db } from "@/lib/db";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = getPublicOrigin();
+  const baseUrl = "https://slotsdesign.vercel.app";
   const now = new Date();
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
       lastModified: now,
@@ -61,4 +61,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ];
+
+  try {
+    const { products } = db.getProducts({ publishedOnly: true });
+    const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
+      url: `${baseUrl}/products/${product.slug}`,
+      lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
+
+    return [...staticRoutes, ...productRoutes];
+  } catch {
+    return staticRoutes;
+  }
 }

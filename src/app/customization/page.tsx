@@ -8,16 +8,16 @@ import { CustomizationProcess } from "@/components/customization/CustomizationPr
 import { CustomizationCta } from "@/components/customization/CustomizationCta";
 
 export const metadata: Metadata = {
-  title: "Custom Sportswear & Private Label",
+  title: "Custom Sportswear & Private Label Services | SLOTS SPORTSWEAR",
   description:
-    "Explore custom sportswear options: bespoke product design, fabric selection, custom fit, embroidery, printing, custom labels, hang tags, and private label finishing.",
+    "Custom sportswear, private label branding, embroidery, printing, trims, packaging and OEM/ODM customization for international apparel businesses.",
   alternates: {
     canonical: "/customization",
   },
   openGraph: {
-    title: "Custom Sportswear & Private Label | SLOTS SPORTSWEAR",
+    title: "Custom Sportswear & Private Label Services | SLOTS SPORTSWEAR",
     description:
-      "Full-service B2B custom sportswear and private-label apparel manufacturing: custom silhouettes, 3D embroidery, silicone heat transfers, woven labels, and retail packaging.",
+      "Custom sportswear, private label branding, embroidery, printing, trims, packaging and OEM/ODM customization for international apparel businesses.",
     url: "https://slotsdesign.vercel.app/customization",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Custom Sportswear & Private Label | SLOTS SPORTSWEAR",
+    title: "Custom Sportswear & Private Label Services | SLOTS SPORTSWEAR",
     description:
-      "Comprehensive sportswear customization: custom design, fabric selection, fit specs, embroidery, printing, labels, and private-label finishing.",
+      "Custom sportswear, private label branding, embroidery, printing, trims, packaging and OEM/ODM customization for international apparel businesses.",
     images: ["/images/factory/branding.jpg"],
   },
 };
@@ -45,15 +45,15 @@ export default function CustomizationPage() {
   const customizationPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "Custom Sportswear & Private Label | SLOTS SPORTSWEAR",
+    name: "Custom Sportswear & Private Label Services | SLOTS SPORTSWEAR",
     url: "https://slotsdesign.vercel.app/customization",
     description:
-      "Comprehensive apparel customization options including custom product design, fabric selection, colors, fit specifications, 3D embroidery, printing, custom labels, hang tags, and private-label packaging.",
+      "Custom sportswear, private label branding, embroidery, printing, trims, packaging and OEM/ODM customization for international apparel businesses.",
     publisher: {
       "@type": "Organization",
       name: "SLOTS SPORTSWEAR",
-      url: "https://slotssportswear.com",
-      logo: "https://slotssportswear.com/images/logo.png",
+      url: "https://slotsdesign.vercel.app",
+      logo: "https://slotsdesign.vercel.app/images/logo.png",
     },
     mainEntity: {
       "@type": "Service",
@@ -112,13 +112,13 @@ export default function CustomizationPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Customization",
-        item: "https://slotssportswear.com/customization",
+        item: "https://slotsdesign.vercel.app/customization",
       },
     ],
   };

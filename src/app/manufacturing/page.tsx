@@ -9,14 +9,14 @@ import { ManufacturingCta } from "@/components/manufacturing/ManufacturingCta";
 export const metadata: Metadata = {
   title: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
   description:
-    "Discover our 10-step sportswear manufacturing process: tech pack consultation, sampling, fabric sourcing, precision cutting, assembly stitching, QC, and global export from Sialkot.",
+    "See how SLOTS SPORTSWEAR develops, manufactures, inspects and prepares custom sportswear for international B2B buyers.",
   alternates: {
     canonical: "/manufacturing",
   },
   openGraph: {
     title: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
     description:
-      "From concept to production: Explore our authentic 10-step B2B sportswear manufacturing process, quality control standards, and Sialkot facility environment.",
+      "See how SLOTS SPORTSWEAR develops, manufactures, inspects and prepares custom sportswear for international B2B buyers.",
     url: "https://slotsdesign.vercel.app/manufacturing",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
     description:
-      "Explore our 10-step B2B sportswear manufacturing workflow from tech pack consultation to quality control and worldwide export.",
+      "See how SLOTS SPORTSWEAR develops, manufactures, inspects and prepares custom sportswear for international B2B buyers.",
     images: ["/images/factory/facility-main.jpg"],
   },
 };
@@ -46,12 +46,12 @@ export default function ManufacturingPage() {
     name: "Sportswear Manufacturing Process | SLOTS SPORTSWEAR",
     url: "https://slotsdesign.vercel.app/manufacturing",
     description:
-      "Comprehensive 10-step sportswear manufacturing process engineered for international B2B clients from tech pack review to shipping.",
+      "See how SLOTS SPORTSWEAR develops, manufactures, inspects and prepares custom sportswear for international B2B buyers.",
     publisher: {
       "@type": "Organization",
       name: "SLOTS SPORTSWEAR",
-      url: "https://slotssportswear.com",
-      logo: "https://slotssportswear.com/images/logo.png",
+      url: "https://slotsdesign.vercel.app",
+      logo: "https://slotsdesign.vercel.app/images/logo.png",
     },
     mainEntity: {
       "@type": "HowTo",
@@ -131,13 +131,13 @@ export default function ManufacturingPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Manufacturing",
-        item: "https://slotssportswear.com/manufacturing",
+        item: "https://slotsdesign.vercel.app/manufacturing",
       },
     ],
   };

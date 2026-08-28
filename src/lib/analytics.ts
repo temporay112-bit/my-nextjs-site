@@ -23,6 +23,7 @@ interface AnalyticsEventParams {
   file_type?: string;
   file_size_category?: string; // e.g. "<5MB", "5-15MB", "15-25MB"
   has_techpack?: boolean;
+  files_count?: number;
   status?: "success" | "error";
   error_type?: string;
   source_section?: string;

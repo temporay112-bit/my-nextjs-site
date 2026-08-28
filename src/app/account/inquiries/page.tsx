@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
+import { parseInquiryFiles } from "@/lib/validations";
 import {
   FileText,
   Calendar,
@@ -24,17 +25,15 @@ export const metadata = {
 };
 
 function getInquiryStatusBadge(status: string) {
-  switch (status) {
-    case "QUOTED":
-      return "bg-[#B7FF00]/10 border-[#B7FF00]/40 text-[#B7FF00]";
+  switch (status.toUpperCase()) {
     case "REVIEWING":
+      return "bg-[#1E3A8A]/20 text-[#60A5FA] border-[#1E3A8A]";
+    case "QUOTED":
+      return "bg-[#14532D]/20 text-[#4ADE80] border-[#14532D]";
     case "CONTACTED":
-      return "bg-amber-950/60 border-amber-500/50 text-amber-400";
-    case "CLOSED":
-      return "bg-[#2A2A2A] border-[#444444] text-[#777777]";
-    case "NEW":
+      return "bg-[#78350F]/20 text-[#FBBF24] border-[#78350F]";
     default:
-      return "bg-blue-950/60 border-blue-500/50 text-blue-400";
+      return "bg-[#2A2A2A] text-[#E9E9E9] border-[#444444]";
   }
 }
 
@@ -45,8 +44,7 @@ export default async function AccountInquiriesPage() {
     redirect("/login?redirect=/account/inquiries");
   }
 
-  // Server-side ownership enforcement: query ONLY inquiries belonging to authenticated user ID
-  const inquiries = db.findInquiriesByCustomerId(user.id);
+  const inquiries = await db.findInquiriesByCustomerIdAsync(user.userId);
   const isAdmin = user.role === "ADMIN";
 
   return (
@@ -113,12 +111,7 @@ export default async function AccountInquiriesPage() {
               /* Inquiries List */
               <div className="space-y-4">
                 {inquiries.map((inquiry) => {
-                  const fileUrl = inquiry.fileReference
-                    ? `/api/upload/file?file=${encodeURIComponent(inquiry.fileReference)}`
-                    : null;
-                  const filename = inquiry.fileReference
-                    ? inquiry.fileReference.split("/").pop()?.split("?")[0] || "Tech Pack"
-                    : null;
+                  const files = parseInquiryFiles(inquiry.files || inquiry.fileReference);
 
                   return (
                     <div
@@ -171,22 +164,49 @@ export default async function AccountInquiriesPage() {
                         </p>
                       </div>
 
-                      {/* Tech Pack Attachment Link */}
-                      {fileUrl && filename && (
-                        <div className="p-3 bg-[#050505] border border-[#2A2A2A] flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-xs font-inter text-[#E9E9E9]">
-                            <Paperclip className="w-4 h-4 text-[#B7FF00]" />
-                            <span className="font-semibold">{filename}</span>
+                      {/* Tech Pack / Artwork Attachments */}
+                      {files.length > 0 && (
+                        <div className="space-y-2">
+                          <span className="font-sora text-[11px] font-bold text-[#777777] uppercase tracking-wider block">
+                            Attached Files ({files.length})
+                          </span>
+                          <div className="space-y-1.5">
+                            {files.map((file, fIdx) => {
+                              const fileUrl = `/api/upload/file?file=${encodeURIComponent(file.pathname)}`;
+                              const sizeLabel =
+                                file.size && file.size > 0
+                                  ? file.size < 1024 * 1024
+                                    ? ` (${(file.size / 1024).toFixed(0)} KB)`
+                                    : ` (${(file.size / (1024 * 1024)).toFixed(1)} MB)`
+                                  : "";
+
+                              return (
+                                <div
+                                  key={fIdx}
+                                  className="p-3 bg-[#050505] border border-[#2A2A2A] flex items-center justify-between gap-3"
+                                >
+                                  <div className="flex items-center gap-2 text-xs font-inter text-[#E9E9E9] truncate min-w-0">
+                                    <Paperclip className="w-4 h-4 text-[#B7FF00] flex-shrink-0" />
+                                    <span className="font-semibold truncate">{file.originalName}</span>
+                                    {sizeLabel && (
+                                      <span className="text-[#777777] text-[11px] flex-shrink-0">
+                                        {sizeLabel}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <a
+                                    href={fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2A2A2A] hover:bg-[#333333] border border-[#B7FF00]/40 text-[#B7FF00] text-xs font-sora font-bold uppercase tracking-wider transition-colors flex-shrink-0"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                    <span>Download</span>
+                                  </a>
+                                </div>
+                              );
+                            })}
                           </div>
-                          <a
-                            href={fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2A2A2A] hover:bg-[#333333] border border-[#B7FF00]/40 text-[#B7FF00] text-xs font-sora font-bold uppercase tracking-wider transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download</span>
-                          </a>
                         </div>
                       )}
                     </div>

@@ -7,16 +7,16 @@ import { QualityControlSection } from "@/components/capabilities/QualityControlS
 import { CapabilitiesCta } from "@/components/capabilities/CapabilitiesCta";
 
 export const metadata: Metadata = {
-  title: "Sportswear Manufacturing Capabilities",
+  title: "Sportswear Manufacturing Capabilities | OEM & ODM",
   description:
-    "Explore SLOTS SPORTSWEAR manufacturing capabilities: OEM production, ODM concept development, private labeling, 5-stage product development, and rigorous multi-stage quality control.",
+    "Explore SLOTS SPORTSWEAR OEM, ODM, product development, customization and B2B apparel manufacturing capabilities.",
   alternates: {
     canonical: "/capabilities",
   },
   openGraph: {
-    title: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    title: "Sportswear Manufacturing Capabilities | OEM & ODM",
     description:
-      "Precision B2B sportswear manufacturing capabilities from tech pack review and sampling to high-capacity bulk production, private labeling, and worldwide export.",
+      "Explore SLOTS SPORTSWEAR OEM, ODM, product development, customization and B2B apparel manufacturing capabilities.",
     url: "https://slotsdesign.vercel.app/capabilities",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    title: "Sportswear Manufacturing Capabilities | OEM & ODM",
     description:
-      "Precision B2B sportswear manufacturing capabilities: OEM, ODM, private label, 5-stage product development, and multi-stage QC.",
+      "Explore SLOTS SPORTSWEAR OEM, ODM, product development, customization and B2B apparel manufacturing capabilities.",
     images: ["/images/factory/facility-main.jpg"],
   },
 };
@@ -44,15 +44,15 @@ export default function CapabilitiesPage() {
   const capabilitiesPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "Sportswear Manufacturing Capabilities | SLOTS SPORTSWEAR",
+    name: "Sportswear Manufacturing Capabilities | OEM & ODM",
     url: "https://slotsdesign.vercel.app/capabilities",
     description:
-      "Comprehensive B2B sportswear manufacturing capabilities including OEM production, ODM design adaptation, private labeling, 5-stage product development, and rigorous quality control.",
+      "Explore SLOTS SPORTSWEAR OEM, ODM, product development, customization and B2B apparel manufacturing capabilities.",
     publisher: {
       "@type": "Organization",
       name: "SLOTS SPORTSWEAR",
-      url: "https://slotssportswear.com",
-      logo: "https://slotssportswear.com/images/logo.png",
+      url: "https://slotsdesign.vercel.app",
+      logo: "https://slotsdesign.vercel.app/images/logo.png",
     },
     mainEntity: {
       "@type": "Service",
@@ -124,13 +124,13 @@ export default function CapabilitiesPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Capabilities",
-        item: "https://slotssportswear.com/capabilities",
+        item: "https://slotsdesign.vercel.app/capabilities",
       },
     ],
   };

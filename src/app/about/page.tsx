@@ -11,14 +11,14 @@ import { AboutCta } from "@/components/about/AboutCta";
 export const metadata: Metadata = {
   title: "About SLOTS SPORTSWEAR | Custom Sportswear Manufacturer",
   description:
-    "Learn about SLOTS SPORTSWEAR — Sialkot's premier B2B custom sportswear, golfwear, and private-label apparel manufacturer exporting worldwide.",
+    "Learn about SLOTS SPORTSWEAR, a Sialkot-based B2B sportswear manufacturer and exporter serving international apparel brands, teams and private-label buyers.",
   alternates: {
     canonical: "/about",
   },
   openGraph: {
     title: "About SLOTS SPORTSWEAR | Custom Sportswear Manufacturer",
     description:
-      "Precision B2B custom sportswear and golfwear manufacturer based in Sialkot, Pakistan. Specializing in OEM, ODM, private label, and global export.",
+      "Learn about SLOTS SPORTSWEAR, a Sialkot-based B2B sportswear manufacturer and exporter serving international apparel brands, teams and private-label buyers.",
     url: "https://slotsdesign.vercel.app/about",
     siteName: "SLOTS SPORTSWEAR",
     locale: "en_US",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "About SLOTS SPORTSWEAR | Custom Sportswear Manufacturer",
     description:
-      "Precision B2B custom sportswear and golfwear manufacturer based in Sialkot, Pakistan.",
+      "Learn about SLOTS SPORTSWEAR, a Sialkot-based B2B sportswear manufacturer and exporter serving international apparel brands, teams and private-label buyers.",
     images: ["/images/factory/facility-main.jpg"],
   },
 };
@@ -53,8 +53,8 @@ export default function AboutPage() {
     publisher: {
       "@type": "Organization",
       name: "SLOTS SPORTSWEAR",
-      url: "https://slotssportswear.com",
-      logo: "https://slotssportswear.com/images/logo.png",
+      url: "https://slotsdesign.vercel.app",
+      logo: "https://slotsdesign.vercel.app/images/logo.png",
     },
     mainEntity: {
       "@type": "Organization",
@@ -88,13 +88,13 @@ export default function AboutPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://slotssportswear.com",
+        item: "https://slotsdesign.vercel.app",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "About Us",
-        item: "https://slotssportswear.com/about",
+        item: "https://slotsdesign.vercel.app/about",
       },
     ],
   };

@@ -92,7 +92,7 @@ export function FactoryProofSection({ className }: FactoryProofSectionProps) {
               className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-slots-black border border-carbon-grey/60 hover:border-light-grey/30 transition-all duration-300 shadow-md min-h-[340px] p-5 sm:p-6"
             >
               {/* Card Image Thumbnail Header */}
-              <div className="relative w-full h-40 sm:h-44 rounded-xl overflow-hidden mb-5 border border-carbon-grey/50">
+              <div className="relative w-full h-40 sm:h-44 rounded-xl overflow-hidden mb-3 border border-carbon-grey/50">
                 <Image
                   src={item.image}
                   alt={item.alt}
@@ -104,7 +104,7 @@ export function FactoryProofSection({ className }: FactoryProofSectionProps) {
 
                 {/* Top Badge on image */}
                 <div className="absolute top-3 left-3 flex items-center gap-2">
-                  <span className="font-sora text-[10px] font-bold text-slots-black bg-electric-lime uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm">
+                  <span className="font-sora text-xs font-bold text-slots-black bg-electric-lime uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm">
                     {item.badge}
                   </span>
                 </div>
@@ -119,19 +119,19 @@ export function FactoryProofSection({ className }: FactoryProofSectionProps) {
 
               {/* Card Content */}
               <div>
-                <p className="font-sora text-[11px] font-bold uppercase tracking-wider text-technical-grey">
+                <p className="font-sora text-xs font-semibold uppercase tracking-wider text-technical-grey">
                   {item.category}
                 </p>
-                <h4 className="font-sora text-base sm:text-[17px] font-bold uppercase tracking-tight text-slots-white group-hover:text-electric-lime transition-colors duration-200 mt-1">
+                <h3 className="font-sora text-base sm:text-lg font-bold tracking-tight text-slots-white group-hover:text-electric-lime transition-colors duration-200 mt-1">
                   {item.title}
-                </h4>
-                <p className="font-inter text-xs sm:text-[13px] text-light-grey/80 line-clamp-3 mt-2 leading-relaxed">
+                </h3>
+                <p className="font-inter text-xs sm:text-sm text-light-grey/80 line-clamp-3 mt-2 leading-relaxed">
                   {item.description}
                 </p>
               </div>
 
               {/* Bottom verification badge */}
-              <div className="mt-4 pt-3 border-t border-carbon-grey/40 flex items-center justify-between text-[11px] font-inter text-technical-grey">
+              <div className="mt-4 pt-3 border-t border-carbon-grey/40 flex items-center justify-between text-xs font-inter text-technical-grey">
                 <span>Verified Workflow</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-lime" />
               </div>

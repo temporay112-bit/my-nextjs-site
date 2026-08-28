@@ -47,6 +47,7 @@ export type {
   PasswordResetToken,
 } from "./types";
 
+import { parseInquiryFiles } from "../validations";
 import { getSeedData } from "./seed";
 
 const DB_DIR = path.join(process.cwd(), "data");
@@ -154,6 +155,26 @@ function mapPasswordResetTokenRow(r: any): PasswordResetToken {
     expiresAt: r.expires_at ? new Date(r.expires_at).toISOString() : r.expiresAt,
     usedAt: r.used_at ? new Date(r.used_at).toISOString() : r.usedAt || null,
     createdAt: r.created_at ? new Date(r.created_at).toISOString() : r.createdAt,
+  };
+}
+
+function mapInquiryRow(r: any): Inquiry {
+  const parsedFiles = parseInquiryFiles(r.file_reference || r.fileReference);
+  return {
+    id: r.id,
+    customerId: r.customer_id || r.customerId || undefined,
+    name: r.name,
+    email: r.email || undefined,
+    phone: r.phone || undefined,
+    companyName: r.company_name || r.companyName || r.company || undefined,
+    company: r.company_name || r.companyName || r.company || undefined,
+    productCategory: r.product_category || r.productCategory || undefined,
+    message: r.message || "",
+    fileReference: r.file_reference || r.fileReference || undefined,
+    files: parsedFiles.length > 0 ? parsedFiles : undefined,
+    status: r.status || "NEW",
+    createdAt: r.created_at ? new Date(r.created_at).toISOString() : r.createdAt,
+    updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : r.updatedAt,
   };
 }
 
@@ -1433,10 +1454,43 @@ class DatabaseService {
     return this.ensureInitialized().inquiries.filter((i) => i.customerId === customerId);
   }
 
+  public async findInquiriesByCustomerIdAsync(customerId: string): Promise<Inquiry[]> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query(
+          "SELECT * FROM inquiries WHERE customer_id = $1 ORDER BY created_at DESC",
+          [customerId]
+        );
+        if (res.rows) {
+          return res.rows.map(mapInquiryRow);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] findInquiriesByCustomerIdAsync error:", err);
+      }
+    }
+    return this.findInquiriesByCustomerId(customerId);
+  }
+
   public getInquiries(): Inquiry[] {
     return this.ensureInitialized().inquiries.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+  }
+
+  public async getInquiriesAsync(): Promise<Inquiry[]> {
+    if (isPostgresConfigured()) {
+      try {
+        const pool = getPostgresPool();
+        const res = await pool.query("SELECT * FROM inquiries ORDER BY created_at DESC");
+        if (res.rows) {
+          return res.rows.map(mapInquiryRow);
+        }
+      } catch (err) {
+        console.error("[DatabaseService] getInquiriesAsync error:", err);
+      }
+    }
+    return this.getInquiries();
   }
 
   public getInquiryById(id: string): Inquiry | undefined {
@@ -1446,6 +1500,14 @@ class DatabaseService {
   public createInquiry(inq: any): Inquiry {
     const db = this.ensureInitialized();
     const now = new Date().toISOString();
+
+    let finalFileRef: string | undefined = inq.fileReference || undefined;
+    if (Array.isArray(inq.files) && inq.files.length > 0) {
+      finalFileRef = JSON.stringify(inq.files);
+    }
+
+    const parsedFiles = parseInquiryFiles(finalFileRef || inq.files);
+
     const newInq: Inquiry = {
       id: "inq-" + randomBytes(6).toString("hex") + "-" + Date.now(),
       customerId: inq.customerId || undefined,
@@ -1455,7 +1517,8 @@ class DatabaseService {
       companyName: inq.companyName || inq.company || undefined,
       productCategory: inq.productCategory || undefined,
       message: inq.message || "",
-      fileReference: inq.fileReference || undefined,
+      fileReference: finalFileRef,
+      files: parsedFiles.length > 0 ? parsedFiles : undefined,
       status: inq.status || "NEW",
       createdAt: now,
       updatedAt: now,
@@ -1579,9 +1642,11 @@ export const markPasswordResetTokenUsedAsync = (id: string) => db.markPasswordRe
 export const findCustomerProfileByUserId = (userId: string) => db.findCustomerProfileByUserId(userId);
 export const findOrdersByCustomerId = (customerId: string) => db.findOrdersByCustomerId(customerId);
 export const findInquiriesByCustomerId = (customerId: string) => db.findInquiriesByCustomerId(customerId);
+export const findInquiriesByCustomerIdAsync = (customerId: string) => db.findInquiriesByCustomerIdAsync(customerId);
 
 export const createInquiry = (inq: any) => db.createInquiry(inq);
 export const getInquiries = () => db.getInquiries();
+export const getInquiriesAsync = () => db.getInquiriesAsync();
 export const getProducts = (options?: Parameters<DatabaseService["getProducts"]>[0]) =>
   db.getProducts(options);
 export const getProductsAsync = (options?: Parameters<DatabaseService["getProductsAsync"]>[0]) =>

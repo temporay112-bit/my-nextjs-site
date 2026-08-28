@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { FileText, Search, ExternalLink, Filter, Loader2, CheckCircle2, Clock } from "lucide-react";
+import { parseInquiryFiles } from "@/lib/validations";
 
 interface Inquiry {
   id: string;
@@ -13,6 +14,7 @@ interface Inquiry {
   productCategory?: string;
   message: string;
   fileReference?: string;
+  files?: any[];
   status?: string;
   createdAt: string;
 }
@@ -169,23 +171,46 @@ export default function AdminInquiriesPage() {
                       <p className="line-clamp-2 text-[#9CA3AF] text-[11px] leading-relaxed">{inq.message}</p>
                     </td>
                     <td className="p-4 whitespace-nowrap">
-                      {inq.fileReference ? (
-                        <a
-                          href={
-                            inq.fileReference.startsWith("/api/upload/file")
-                              ? inq.fileReference
-                              : `/api/upload/file?file=${encodeURIComponent(inq.fileReference)}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[#60A5FA] hover:text-[#93C5FD] underline text-[11px]"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>View Artwork</span>
-                        </a>
-                      ) : (
-                        <span className="text-[#6B7280]">No File</span>
-                      )}
+                      {(() => {
+                        const files = parseInquiryFiles(inq.files || inq.fileReference);
+                        if (files.length === 0) {
+                          return <span className="text-[#6B7280]">No File</span>;
+                        }
+                        if (files.length === 1) {
+                          return (
+                            <a
+                              href={`/api/upload/file?file=${encodeURIComponent(files[0].pathname)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[#60A5FA] hover:text-[#93C5FD] underline text-[11px]"
+                              title={files[0].originalName}
+                            >
+                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate max-w-[130px]">{files[0].originalName}</span>
+                            </a>
+                          );
+                        }
+                        return (
+                          <div className="flex flex-col gap-1 max-w-[160px]">
+                            <span className="px-1.5 py-0.5 bg-[#1F2430] text-[#B7FF00] font-barlow font-bold uppercase text-[9px] w-fit rounded">
+                              {files.length} Files
+                            </span>
+                            {files.map((f, idx) => (
+                              <a
+                                key={idx}
+                                href={`/api/upload/file?file=${encodeURIComponent(f.pathname)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[#60A5FA] hover:text-[#93C5FD] underline text-[11px] truncate"
+                                title={f.originalName}
+                              >
+                                <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
+                                <span className="truncate">{f.originalName}</span>
+                              </a>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <select
